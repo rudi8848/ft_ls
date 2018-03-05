@@ -1,20 +1,40 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+define	struct s_options
+{
+	int a;
+	int l;
+	int R;
+	int r;
+	int t;
+} t_options;
 
 int	main(int argc, char **argv)
 {
-	int res = 0;
-	DIR *folder;
+	//int i = 0;
+	DIR *dirp;
 	struct dirent *info;
-
-	if (argc == 2)
+	char *name;
+	if (argc <= 2)
 	{
-		folder = opendir(argv[1]);
-		info = readdir(folder);
-		res = closedir(folder);
+		if (argc == 2)
+			name = argv[1];
+		else
+			name = ".";
+		dirp = opendir(name);
+		if (!dirp)
+		{
+			printf("Cannot open directory\n");
+			exit (1);
+		}
+		while ((info = readdir(dirp)))
+			printf("->	%s\n", info->d_name);
+		closedir(dirp);
 	}
 	else
-		printf("Enter the filename\n");
-	return res;
+		printf("Too much agrs\n");
+	return 0;
 }
