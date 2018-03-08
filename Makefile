@@ -6,10 +6,10 @@ LIB = libftprintf/libftprintf.a
 all: $(NAME)
 
 $(NAME): $(OBJ) $(LIB)
-	gcc -o $(NAME) -Wall -Wextra -Werror $(OBJ) -L. $(LIB)
+	gcc -o $(NAME) -g3 -Wall -Wextra -Werror $(OBJ) -L. $(LIB)
 
 $(OBJ): $(SRC) $(LIB)
-	gcc -c $(SRC)
+	gcc -c -g3 $(SRC)
 
 $(LIB):
 	make -C libftprintf

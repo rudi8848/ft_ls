@@ -171,7 +171,7 @@ int	main(int argc, char **argv)
 	options = (t_options*)ft_memalloc(sizeof(t_options));
 	if (!options)
 		perror("Error");
-printf("-------------------------------------------------------------\n");
+//printf("-------------------------------------------------------------\n");
 	if (argc > 1)
 	{
 		while (i < argc)
@@ -214,7 +214,7 @@ printf("-------------------------------------------------------------\n");
 	else
 		ft_read_args(".", options/*, &content*/);
 		
-	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
+//	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
 	//printf("fc: %d\n", fc);
 	free(options);
 	return 0;

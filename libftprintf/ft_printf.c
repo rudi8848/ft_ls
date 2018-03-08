@@ -175,7 +175,7 @@ int		ft_putwchar(wchar_t chr)
 }
 */
 
-int ft_nb_bits(wchar_t wc)
+unsigned ft_nb_bits(wchar_t wc)
 {
   int i = 0;
   while (wc)
@@ -185,7 +185,7 @@ int ft_nb_bits(wchar_t wc)
     }
     return i;
   }
-int ft_nb_bytes(int n)
+unsigned ft_nb_bytes(unsigned n)
 {
   if (n <= 7)
     return 1;
@@ -200,8 +200,8 @@ int ft_nb_bytes(int n)
 int   ft_putwchar(wchar_t wc)
 {
     char    tmp[4];
-    int bits;
-    int bytes;
+    unsigned bits;
+    unsigned bytes;
 
     bits = ft_nb_bits(wc);
     bytes = ft_nb_bytes(wc);
