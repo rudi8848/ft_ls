@@ -78,7 +78,7 @@ typedef struct s_flist
 {
 	char *name;
 	char *path;
-	char mode[10];
+	char mode[11];
 	short nlink;
 	char *user;
 	char *group;
@@ -87,10 +87,10 @@ typedef struct s_flist
 	struct s_flist *next;
 } t_flist;
 
-void ft_read_args(char *name, t_opt *options);
+void ft_read_args(char *name, t_opt *options, t_flist *head);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
-void ft_read_dir(DIR *dirp, t_opt *options);
+void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head);
 
 
 void ft_print_time(struct stat *buf)
@@ -115,8 +115,11 @@ void ft_print_time(struct stat *buf)
 	ft_putchar(' ');
 }
 
-void get_mode(struct stat buf, *t_flist file)
+void get_mode(struct stat buf, t_flist *file)
 {
+//	file->mode = {0};
+	//printf("%s\n", file->mode);
+	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
 	file->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
 	file->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
 	file->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
@@ -126,6 +129,7 @@ void get_mode(struct stat buf, *t_flist file)
 	file->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+	printf("%s\n", file->mode);
 }
 
 void ft_read_link(struct stat buf, t_flist *head)
@@ -142,9 +146,10 @@ void ft_read_file(struct stat buf, t_flist *head)
 	//ft_print_time(&buf);
 	//printf("st_mode %d", buf.st_mode);
 	//printf("%d\n");
+	get_mode(buf, head);
 }
 
-void ft_read_dir(DIR *dirp, t_opt *options)
+void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 {
 	struct dirent *info;
 	struct stat buf;
@@ -158,7 +163,7 @@ void ft_read_dir(DIR *dirp, t_opt *options)
 		if (options->R)
 		{
 			stat(info->d_name, &buf);
-			ft_read_file(buf);
+			ft_read_file(buf, head);
 
 		}	//ft_read_args(info->d_name, options);
 		else
@@ -241,6 +246,7 @@ int	main(int argc, char **argv)
 	}
 	else
 		ft_read_args(".", options, &head);
+	ft_printf("%s\n", head->mode);
 		
 //	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
 	free(options);
