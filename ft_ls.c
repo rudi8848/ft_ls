@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include "libftprintf/includes/libft.h"
+#include "libftprintf/includes/ft_printf.h"
 #include <errno.h>
 
 /*
@@ -39,20 +40,20 @@
 
 */
 
-typedef	struct s_options
+typedef	struct s_opt
 {
 	int a;
 	int l;
 	int R;
 	int r;
 	int t;
-} t_options;
+} t_opt;
 
 typedef enum
 {
 	TYPE,
 	PERM,
-	AMOUNT,
+	LINKS,
 	USER,
 	GROUP,
 	SIZE,
@@ -73,10 +74,23 @@ typedef enum
 	T_END
 } e_time;
 
-void ft_read_args(char *name, t_options *options);
+typedef struct s_flist
+{
+	char *name;
+	char *path;
+	char mode[10];
+	short nlink;
+	char *user;
+	char *group;
+	long size;
+	char date;
+	struct s_flist *next;
+} t_flist;
+
+void ft_read_args(char *name, t_opt *options);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
-void ft_read_dir(DIR *dirp, t_options *options);
+void ft_read_dir(DIR *dirp, t_opt *options);
 
 
 void ft_print_time(struct stat *buf)
@@ -100,14 +114,40 @@ void ft_print_time(struct stat *buf)
 	write(1, date[T_TIME], 5);
 	ft_putchar(' ');
 }
-void ft_read_file()
+
+void get_mode(struct stat buf, *t_flist file)
+{
+	file->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
+	file->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
+	file->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
+	file->mode[4] = S_IRGRP & buf.st_mode ? 'r' : '-';
+	file->mode[5] = S_IWGRP & buf.st_mode ? 'w' : '-';
+	file->mode[6] = S_IXGRP & buf.st_mode ? 'x' : '-';
+	file->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
+	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
+	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+}
+
+void ft_read_link(struct stat buf, t_flist *head)
 {
 	;
 }
 
-void ft_read_dir(DIR *dirp, t_options *options)
+void ft_read_file(struct stat buf, t_flist *head)
+{
+	//printf("links: %hd\t",buf.st_nlink);
+	//printf("uid %d\t", buf.st_uid);
+	//printf("gid %d\t", buf.st_gid);
+	//printf("size %ld\t", buf.st_size);
+	//ft_print_time(&buf);
+	//printf("st_mode %d", buf.st_mode);
+	//printf("%d\n");
+}
+
+void ft_read_dir(DIR *dirp, t_opt *options)
 {
 	struct dirent *info;
+	struct stat buf;
 	while ((info = readdir(dirp)))
 	{
 		if (ft_strequ(info->d_name, ".")||ft_strequ(info->d_name, ".."))
@@ -116,61 +156,52 @@ void ft_read_dir(DIR *dirp, t_options *options)
 		 		continue;
 		 	}
 		if (options->R)
-			ft_read_args(info->d_name, options);
-		//else
-		printf("->	%s\n", info->d_name);
+		{
+			stat(info->d_name, &buf);
+			ft_read_file(buf);
+
+		}	//ft_read_args(info->d_name, options);
+		else
+			printf("->	%s\n", info->d_name);
 	}
 }
 
 
-void ft_read_args(char *name, t_options *options)
+void ft_read_args(char *name, t_opt *options, t_flist *head)
 {
 	int ret;
 	DIR *dirp;
-	
-	
-	
 	struct stat buf;
 
 	ret = stat(name, &buf);
 	if (ret >= 0)
-{
-	if (S_ISREG(buf.st_mode))
 	{
-		ft_putstr("f.	");
-		printf("%s\n", name);
-		ft_read_file();
+		if (S_ISREG(buf.st_mode))
+			ft_read_file(buf, head);
+		else if (S_ISDIR(buf.st_mode))
+		{
+			dirp = opendir(name);
+			ft_read_dir(dirp, options, head);
+			closedir(dirp);
+		}
+		else if (S_ISLNK(buf.st_mode))
+			ft_read_link(buf, head);
 	}
-	else if (S_ISDIR(buf.st_mode))
-	{
-		ft_putstr("d.	");
-		//printf("%s\n", name);
-		dirp = opendir(name);
-		ft_read_dir(dirp, options);
-		closedir(dirp);
-	}
-}
 else
-{
-	printf("%s\t", name);
 	perror(strerror(ret));
-}
-	/*if (options->l)
-		ft_print_time(&buf);*/
-	
 }
 
 int	main(int argc, char **argv)
 {
 	int i = 1;
-	//char content[][FIELDS];
-	//int fc = 0;
+	t_flist *head;
+	t_opt *options;
 
-	t_options *options;
-
-	options = (t_options*)ft_memalloc(sizeof(t_options));
+	options = (t_opt*)ft_memalloc(sizeof(t_opt));
+	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options)
 		perror("Error");
+	
 //printf("-------------------------------------------------------------\n");
 	if (argc > 1)
 	{
@@ -201,21 +232,17 @@ int	main(int argc, char **argv)
 					i++;
 			}
 			if (!argv[i])
-				ft_read_args(".", options/*, &content*/);
+				ft_read_args(".", options, &head);
 			else
-				{
-					ft_read_args(argv[i], options/*, &content*/);
-					//fc++;
-				}
-			i++;
+				ft_read_args(argv[i], options, &head);
+						i++;
 		}
 		
 	}
 	else
-		ft_read_args(".", options/*, &content*/);
+		ft_read_args(".", options, &head);
 		
 //	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
-	//printf("fc: %d\n", fc);
 	free(options);
 	return 0;
 }
