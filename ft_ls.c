@@ -29,15 +29,8 @@
 
 
 
-     int 		fstat(int fildes, struct stat *buf);
-     int 		lstat(const char *restrict path, struct stat *restrict buf);
-
-
-	char list[][FIELDS] = 
-	{
-	"d rw-rw-rw 1 "
-	};
-
+     int 	stat(const char *file_name, struct stat *buf);
+     int 	lstat(const char *file_name, struct stat *buf);
 */
 
 typedef	struct s_opt
@@ -129,6 +122,7 @@ void get_mode(struct stat buf, t_flist *file)
 	file->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+	write(1, file->mode, 10);
 	printf("%s\n", file->mode);
 }
 
