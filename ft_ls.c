@@ -110,9 +110,7 @@ void ft_print_time(struct stat *buf)
 
 void get_mode(struct stat buf, t_flist *file)
 {
-//	file->mode = {0};
-	//printf("%s\n", file->mode);
-	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+	file->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
 	file->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
 	file->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
 	file->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
@@ -122,8 +120,8 @@ void get_mode(struct stat buf, t_flist *file)
 	file->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
-	write(1, file->mode, 10);
-	printf("%s\n", file->mode);
+	//write(1, file->mode, 10);
+	ft_printf("%s\n", file->mode);
 }
 
 void ft_read_link(struct stat buf, t_flist *head)
@@ -231,16 +229,16 @@ int	main(int argc, char **argv)
 					i++;
 			}
 			if (!argv[i])
-				ft_read_args(".", options, &head);
+				ft_read_args(".", options,head);
 			else
-				ft_read_args(argv[i], options, &head);
+				ft_read_args(argv[i], options, head);
 						i++;
 		}
 		
 	}
 	else
-		ft_read_args(".", options, &head);
-	ft_printf("%s\n", head->mode);
+		ft_read_args(".", options, head);
+//	ft_printf("%s\n", head->mode);
 		
 //	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
 	free(options);
