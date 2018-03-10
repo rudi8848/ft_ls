@@ -1,5 +1,7 @@
 #include <dirent.h>
 #include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -84,7 +86,39 @@ void ft_read_args(char *name, t_opt *options, t_flist *head);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head);
+void ft_sort_flist(void)
+{
+	;
+}
+void ft_print_flist(t_flist *head)
+{
+	while (head)
+	{
+		ft_printf("%5s %5s %5s %5s\n", head->mode, head->user, head->group, head->name);
+		head = head->next;
+	}
+}
 
+void ft_delete_flist(void)
+{
+	;
+}
+
+
+void	ft_push_fname(t_flist **head, char *name)
+{
+	t_flist *tmp;
+
+	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
+	if (!tmp)
+	{
+		perror("ft_memalloc");
+		exit(1);
+	}
+	tmp->name = ft_strdup(name);
+	tmp->next = (*head);
+	(*head) = tmp;
+}
 
 void ft_print_time(struct stat *buf)
 {
@@ -93,13 +127,6 @@ void ft_print_time(struct stat *buf)
 
 	ft_strcpy(mtime, ctime(&buf->st_mtime));
 	date = ft_strsplit(mtime, ' ');
-	//ft_putstr(mtime);
-	/*while (*date)
-	{
-		ft_putstr(*date);
-		ft_putchar('\n');
-		date++;
-	}*/
 	ft_putstr(date[T_MONTH]);
 	ft_putchar(' ');
 	ft_putstr(date[T_DAY]);
@@ -121,7 +148,7 @@ void get_mode(struct stat buf, t_flist *file)
 	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
 	//write(1, file->mode, 10);
-	ft_printf("%s\n", file->mode);
+	//ft_printf("%8s", file->mode);
 }
 
 void ft_read_link(struct stat buf, t_flist *head)
@@ -163,6 +190,17 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 	}
 }
 
+void	ft_get_user_group(struct stat buf, t_flist *head)
+{
+	struct passwd *s_user;
+	struct group *s_group;
+
+	s_user = getpwuid(buf.st_uid);
+	head->user = s_user->pw_name;
+	s_group = getgrgid(buf.st_gid);
+	head->group = s_group->gr_name;
+	//ft_printf("%8s %8s\n", head->user, head->group);
+}
 
 void ft_read_args(char *name, t_opt *options, t_flist *head)
 {
@@ -171,8 +209,10 @@ void ft_read_args(char *name, t_opt *options, t_flist *head)
 	struct stat buf;
 
 	ret = stat(name, &buf);
+	ft_get_user_group(buf, head);
 	if (ret >= 0)
 	{
+		ft_push_fname(&head, name);
 		if (S_ISREG(buf.st_mode))
 			ft_read_file(buf, head);
 		else if (S_ISDIR(buf.st_mode))
@@ -184,8 +224,8 @@ void ft_read_args(char *name, t_opt *options, t_flist *head)
 		else if (S_ISLNK(buf.st_mode))
 			ft_read_link(buf, head);
 	}
-else
-	perror(strerror(ret));
+	else
+		perror(strerror(ret));
 }
 
 int	main(int argc, char **argv)
@@ -238,8 +278,9 @@ int	main(int argc, char **argv)
 	}
 	else
 		ft_read_args(".", options, head);
-//	ft_printf("%s\n", head->mode);
-		
+	ft_sort_flist();
+	ft_print_flist(head);
+	ft_delete_flist();
 //	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
 	free(options);
 	return 0;
