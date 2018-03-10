@@ -73,7 +73,7 @@ typedef struct s_flist
 {
 	char *name;
 	char *path;
-	char mode[11];
+	char *mode;
 	short nlink;
 	char *user;
 	char *group;
@@ -94,7 +94,7 @@ void ft_print_flist(t_flist *head)
 {
 	while (head->next)
 	{
-		ft_printf("%5p %5s %5s %5s %15s\n",head, head->mode, head->user, head->group, head->name);
+		ft_printf("%5s %5s %5s %-15s\n", head->mode, head->user, head->group, head->name);
 		head = head->next;
 	}
 }
@@ -135,20 +135,26 @@ void ft_print_time(struct stat *buf)
 	ft_putchar(' ');
 }
 
-void get_mode(struct stat buf, t_flist *file)
+void get_mode(struct stat buf, t_flist **file)
 {
-	file->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
-	file->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
-	file->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
-	file->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
-	file->mode[4] = S_IRGRP & buf.st_mode ? 'r' : '-';
-	file->mode[5] = S_IWGRP & buf.st_mode ? 'w' : '-';
-	file->mode[6] = S_IXGRP & buf.st_mode ? 'x' : '-';
-	file->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
-	file->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
-	file->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+	(*file)->mode = ft_strnew(10);
+	if (!(*file)->mode)
+	{
+		perror("ft_strnew");
+		exit(1);
+	}
+	(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
+	(*file)->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
+	(*file)->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
+	(*file)->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
+	(*file)->mode[4] = S_IRGRP & buf.st_mode ? 'r' : '-';
+	(*file)->mode[5] = S_IWGRP & buf.st_mode ? 'w' : '-';
+	(*file)->mode[6] = S_IXGRP & buf.st_mode ? 'x' : '-';
+	(*file)->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
+	(*file)->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
+	(*file)->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
 	//write(1, file->mode, 10);
-	//ft_printf("%8s", file->mode);
+//	ft_printf("%8s", (*file)->mode);
 }
 
 void ft_read_link(struct stat buf, t_flist *head)
@@ -165,7 +171,7 @@ void ft_read_file(struct stat buf, t_flist **head)
 	//ft_print_time(&buf);
 	//printf("st_mode %d", buf.st_mode);
 	//printf("%d\n");
-	get_mode(buf, *head);
+	get_mode(buf, head);
 }
 
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
