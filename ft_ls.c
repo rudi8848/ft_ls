@@ -82,7 +82,7 @@ typedef struct s_flist
 	struct s_flist *next;
 } t_flist;
 
-void ft_read_args(char *name, t_opt *options, t_flist *head);
+void ft_read_args(char *name, t_opt *options, t_flist **head);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head);
@@ -92,9 +92,9 @@ void ft_sort_flist(void)
 }
 void ft_print_flist(t_flist *head)
 {
-	while (head)
+	while (head->next)
 	{
-		ft_printf("%5s %5s %5s %5s\n", head->mode, head->user, head->group, head->name);
+		ft_printf("%5p %5s %5s %5s %15s\n",head, head->mode, head->user, head->group, head->name);
 		head = head->next;
 	}
 }
@@ -156,7 +156,7 @@ void ft_read_link(struct stat buf, t_flist *head)
 	;
 }
 
-void ft_read_file(struct stat buf, t_flist *head)
+void ft_read_file(struct stat buf, t_flist **head)
 {
 	//printf("links: %hd\t",buf.st_nlink);
 	//printf("uid %d\t", buf.st_uid);
@@ -165,7 +165,7 @@ void ft_read_file(struct stat buf, t_flist *head)
 	//ft_print_time(&buf);
 	//printf("st_mode %d", buf.st_mode);
 	//printf("%d\n");
-	get_mode(buf, head);
+	get_mode(buf, *head);
 }
 
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
@@ -182,7 +182,7 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 		if (options->R)
 		{
 			stat(info->d_name, &buf);
-			ft_read_file(buf, head);
+			ft_read_file(buf, &head);
 
 		}	//ft_read_args(info->d_name, options);
 		else
@@ -190,48 +190,49 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 	}
 }
 
-void	ft_get_user_group(struct stat buf, t_flist *head)
+void	ft_get_user_group(struct stat buf, t_flist **head)
 {
 	struct passwd *s_user;
 	struct group *s_group;
 
 	s_user = getpwuid(buf.st_uid);
-	head->user = s_user->pw_name;
+	(*head)->user = ft_strdup(s_user->pw_name);
 	s_group = getgrgid(buf.st_gid);
-	head->group = s_group->gr_name;
-	//ft_printf("%8s %8s\n", head->user, head->group);
+	(*head)->group = ft_strdup(s_group->gr_name);
+
 }
 
-void ft_read_args(char *name, t_opt *options, t_flist *head)
+void ft_read_args(char *name, t_opt *options, t_flist **head)
 {
 	int ret;
 	DIR *dirp;
 	struct stat buf;
 
 	ret = stat(name, &buf);
-	ft_get_user_group(buf, head);
 	if (ret >= 0)
 	{
-		ft_push_fname(&head, name);
+		ft_push_fname(head, name);
+		ft_get_user_group(buf, head);
 		if (S_ISREG(buf.st_mode))
 			ft_read_file(buf, head);
 		else if (S_ISDIR(buf.st_mode))
 		{
 			dirp = opendir(name);
-			ft_read_dir(dirp, options, head);
+			ft_read_dir(dirp, options, *head);
 			closedir(dirp);
 		}
 		else if (S_ISLNK(buf.st_mode))
-			ft_read_link(buf, head);
+			ft_read_link(buf, *head);
 	}
 	else
 		perror(strerror(ret));
+//ft_printf("%s %8s %8s\n", __FUNCTION__, (*head)->user, (*head)->group);
 }
 
 int	main(int argc, char **argv)
 {
 	int i = 1;
-	t_flist *head;
+	t_flist *head = NULL;
 	t_opt *options;
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
@@ -269,16 +270,18 @@ int	main(int argc, char **argv)
 					i++;
 			}
 			if (!argv[i])
-				ft_read_args(".", options,head);
+				ft_read_args(".", options,&head);
+
 			else
-				ft_read_args(argv[i], options, head);
+				ft_read_args(argv[i], options, &head);
 						i++;
 		}
 		
 	}
 	else
-		ft_read_args(".", options, head);
+		ft_read_args(".", options, &head);
 	ft_sort_flist();
+//ft_printf("%s %8s %8s %8s\n", __FUNCTION__, head->user, head->group, head->name);
 	ft_print_flist(head);
 	ft_delete_flist();
 //	printf("\n-------------------------------------------------------------\noptions {a - %d, l - %d, R - %d, r - %d, t - %d}\n", options->a, options->l, options->R, options->r, options->t);
