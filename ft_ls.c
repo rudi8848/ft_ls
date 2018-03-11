@@ -85,7 +85,7 @@ typedef struct s_flist
 void ft_read_args(char *name, t_opt *options, t_flist **head);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
-void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head);
+void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head);
 void	ft_get_user_group(struct stat buf, t_flist **head);
 void ft_sort_flist(void)
 {
@@ -179,7 +179,7 @@ void ft_read_file(struct stat buf, t_flist **head)
 	get_mode(buf, head);
 }
 
-void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
+void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
 {
 	struct dirent *info;
 	struct stat buf;
@@ -199,17 +199,17 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 		 {
 		 	//printf("-----file %s %s\n", __FUNCTION__, info->d_name);
 		 stat(info->d_name, &buf);
-		 ft_push_fname(&head, info->d_name);
-		 ft_get_user_group(buf, &head);
-		 ft_read_file(buf, &head);
+		 ft_push_fname(head, info->d_name);
+		 ft_get_user_group(buf, head);
+		 ft_read_file(buf, head);
 		}
 		else if (info->d_type & DT_DIR)
 		{
 			//printf("->	%s\n", info->d_name);
 			lstat(info->d_name, &buf);
-			ft_push_fname(&head, info->d_name);
-			ft_get_user_group(buf, &head);
-		 	ft_read_file(buf, &head);
+			ft_push_fname(head, info->d_name);
+			ft_get_user_group(buf, head);
+		 	ft_read_file(buf, head);
 		}
 		/*if (options->R)
 		{
@@ -243,7 +243,7 @@ void ft_read_args(char *name, t_opt *options, t_flist **head)
 	ret = stat(name, &buf);
 	if (ret >= 0)
 	{
-		if (!ft_strequ(name, "0"))
+		if (!ft_strequ(name, "."))
 		{
 			ft_push_fname(head, name);
 			ft_get_user_group(buf, head);
@@ -253,7 +253,7 @@ void ft_read_args(char *name, t_opt *options, t_flist **head)
 		else if (S_ISDIR(buf.st_mode))
 		{
 			dirp = opendir(name);
-			ft_read_dir(dirp, options, *head);
+			ft_read_dir(dirp, options, head);
 			closedir(dirp);
 		}
 		else if (S_ISLNK(buf.st_mode))
