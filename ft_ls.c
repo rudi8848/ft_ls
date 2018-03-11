@@ -243,8 +243,11 @@ void ft_read_args(char *name, t_opt *options, t_flist **head)
 	ret = stat(name, &buf);
 	if (ret >= 0)
 	{
-		ft_push_fname(head, name);
-		ft_get_user_group(buf, head);
+		if (!ft_strequ(name, "0"))
+		{
+			ft_push_fname(head, name);
+			ft_get_user_group(buf, head);
+		}
 		if (S_ISREG(buf.st_mode))
 			ft_read_file(buf, head);
 		else if (S_ISDIR(buf.st_mode))
