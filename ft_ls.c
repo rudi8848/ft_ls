@@ -86,14 +86,17 @@ void ft_read_args(char *name, t_opt *options, t_flist **head);
 void ft_print_time(struct stat *buf);
 void ft_read_file();
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head);
+void	ft_get_user_group(struct stat buf, t_flist **head);
 void ft_sort_flist(void)
 {
 	;
 }
 void ft_print_flist(t_flist *head)
 {
+	//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 	while (head->next)
 	{
+		//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 		ft_printf("%5s %5s %5s %-15s\n", head->mode, head->user, head->group, head->name);
 		head = head->next;
 	}
@@ -107,6 +110,7 @@ void ft_delete_flist(void)
 
 void	ft_push_fname(t_flist **head, char *name)
 {
+	//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 	t_flist *tmp;
 
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
@@ -118,6 +122,7 @@ void	ft_push_fname(t_flist **head, char *name)
 	tmp->name = ft_strdup(name);
 	tmp->next = (*head);
 	(*head) = tmp;
+	//ft_print_flist(*head);
 }
 
 void ft_print_time(struct stat *buf)
@@ -180,19 +185,40 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist *head)
 	struct stat buf;
 	while ((info = readdir(dirp)))
 	{
-		if (ft_strequ(info->d_name, ".")||ft_strequ(info->d_name, ".."))
+		if (ft_strequ(info->d_name, "."))
 		 	{
 		 		printf("->	%s\n", info->d_name);
 		 		continue;
 		 	}
-		if (options->R)
+		 if (ft_strequ(info->d_name, ".."))
+		 	{
+		 		printf("->	%s\n", info->d_name);
+		 		continue;
+		 	}
+		 if (info->d_type & DT_REG)
+		 {
+		 	//printf("-----file %s %s\n", __FUNCTION__, info->d_name);
+		 stat(info->d_name, &buf);
+		 ft_push_fname(&head, info->d_name);
+		 ft_get_user_group(buf, &head);
+		 ft_read_file(buf, &head);
+		}
+		else if (info->d_type & DT_DIR)
 		{
-			stat(info->d_name, &buf);
-			ft_read_file(buf, &head);
-
-		}	//ft_read_args(info->d_name, options);
+			//printf("->	%s\n", info->d_name);
+			lstat(info->d_name, &buf);
+			ft_push_fname(&head, info->d_name);
+			ft_get_user_group(buf, &head);
+		 	ft_read_file(buf, &head);
+		}
+		/*if (options->R)
+		{
+			//
+			//ft_read_file(buf, &head);
+			//ft_read_args(info->d_name, options, &head);
+		}	
 		else
-			printf("->	%s\n", info->d_name);
+			printf("->	%s\n", info->d_name);*/
 	}
 }
 
@@ -282,7 +308,6 @@ int	main(int argc, char **argv)
 				ft_read_args(argv[i], options, &head);
 						i++;
 		}
-		
 	}
 	else
 		ft_read_args(".", options, &head);
