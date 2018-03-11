@@ -78,7 +78,9 @@ typedef struct s_flist
 	char *user;
 	char *group;
 	long size;
-	char date;
+	char *day;
+	char *month;
+	char *time;
 	struct s_flist *next;
 } t_flist;
 
@@ -97,7 +99,7 @@ void ft_print_flist(t_flist *head)
 	while (head->next)
 	{
 		//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
-		ft_printf("%5s %5s %5s %-15s\n", head->mode, head->user, head->group, head->name);
+		ft_printf("%5s %5s %5s %5llD %4s %3s %-10s %-15s\n", head->mode, head->user, head->group, head->size, head->month,head->day, head->time, head->name);
 		head = head->next;
 	}
 }
@@ -125,22 +127,31 @@ void	ft_push_fname(t_flist **head, char *name)
 	//ft_print_flist(*head);
 }
 
-void ft_print_time(struct stat *buf)
+void ft_get_size(struct stat buf, t_flist **file)
 {
-	char mtime[100];
-	char **date;
-
-	ft_strcpy(mtime, ctime(&buf->st_mtime));
-	date = ft_strsplit(mtime, ' ');
-	ft_putstr(date[T_MONTH]);
-	ft_putchar(' ');
-	ft_putstr(date[T_DAY]);
-	ft_putchar(' ');
-	write(1, date[T_TIME], 5);
-	ft_putchar(' ');
+	printf("-------------%llD------------\n", buf.st_size);
+	(*file)->size = buf.st_size;
+	
 }
 
-void get_mode(struct stat buf, t_flist **file)
+void ft_get_time(struct stat buf, t_flist **file)
+{
+
+	char **date;
+
+	//(*file)->time = ft_strdup(ctime(&buf.st_mtime));
+	date = ft_strsplit(ctime(&buf.st_mtime), ' ');
+
+	(*file)->day = ft_strdup(date[T_DAY]);
+	(*file)->month = ft_strdup(date[T_MONTH]);
+	(*file)->time = ft_strdup(date[T_TIME]);
+	//printf("%5s %5s\n", (*file)->date, (*file)->time);
+
+	if (date)
+		free(date);
+}
+
+void ft_get_mode(struct stat buf, t_flist **file)
 {
 	(*file)->mode = ft_strnew(10);
 	if (!(*file)->mode)
@@ -176,7 +187,8 @@ void ft_read_file(struct stat buf, t_flist **head)
 	//ft_print_time(&buf);
 	//printf("st_mode %d", buf.st_mode);
 	//printf("%d\n");
-	get_mode(buf, head);
+	ft_get_mode(buf, head);
+	ft_get_time(buf, head);
 }
 
 void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
@@ -185,14 +197,9 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
 	struct stat buf;
 	while ((info = readdir(dirp)))
 	{
-		if (ft_strequ(info->d_name, "."))
+		if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, ".."))
 		 	{
-		 		printf("->	%s\n", info->d_name);
-		 		continue;
-		 	}
-		 if (ft_strequ(info->d_name, ".."))
-		 	{
-		 		printf("->	%s\n", info->d_name);
+		 		printf("%s\n", info->d_name);
 		 		continue;
 		 	}
 		 if (info->d_type & DT_REG)
