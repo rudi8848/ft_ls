@@ -17,7 +17,7 @@ typedef	struct s_opt
 	int R;
 	int r;
 	int t;
-} t_opt;
+}				t_opt;
 
 typedef enum
 {
@@ -32,7 +32,7 @@ typedef enum
 	TIME,
 	NAME,
 	FIELDS
-} e_fields;
+}	e_fields;
 
 typedef enum
 {
@@ -42,7 +42,7 @@ typedef enum
 	T_TIME,
 	T_YEAR,
 	T_END
-} e_time;
+}	e_time;
 
 typedef struct s_flist
 {
@@ -70,10 +70,8 @@ void	ft_sort_flist(void)
 }
 void ft_print_flist(t_flist *head)
 {
-	//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 	while (head->next)
 	{
-		//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 		ft_printf("%5s %3hi %5s %5s %5llD %4s %3s %-5.5s %-8s\n", head->mode, head->nlink, head->user, head->group, head->size, head->month,head->day, head->time, head->name);
 		head = head->next;
 	}
@@ -107,7 +105,6 @@ void ft_delete_flist(t_flist **head)
 
 void	ft_push_fname(t_flist **head, char *name)
 {
-	//printf("\n-------------------%s---------------------\n",__FUNCTION__ );
 	t_flist *tmp;
 
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
@@ -155,7 +152,6 @@ void ft_get_size(struct stat buf, t_flist **file)
 
 void ft_get_time(struct stat buf, t_flist **file)
 {
-
 	char **date;
 	int i;
 
@@ -194,8 +190,6 @@ void ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	(*file)->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	(*file)->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
-	//write(1, file->mode, 10);
-//	ft_printf("%8s", (*file)->mode);
 }
 
 void ft_get_links(struct stat buf, t_flist **file)
@@ -210,10 +204,7 @@ void ft_read_link(struct stat buf, t_flist *head)
 
 void ft_read_file(char *name, t_opt options, struct stat buf, t_flist **head)
 {
-	//if (options.r)
-		ft_push_fname(head, name);
-	//else
-	//	ft_push_back_fname(*head, name);
+	ft_push_fname(head, name);
 	ft_get_mode(buf, head);
 	ft_get_user_group(buf, head);
 	ft_get_time(buf, head);
@@ -225,6 +216,7 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
 {
 	struct dirent *info;
 	struct stat buf;
+
 	while ((info = readdir(dirp)))
 	{
 		/*if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, ".."))
@@ -232,30 +224,16 @@ void ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
 		 		printf("%s\n", info->d_name);
 		 		continue;
 		 	}*/
-		 if (info->d_type & DT_REG)
-		 {
-		 	//printf("-----file %s %s\n", __FUNCTION__, info->d_name);
-		 stat(info->d_name, &buf);
-		 //ft_push_fname(head, info->d_name);
-		 //ft_get_user_group(buf, head);
-		 ft_read_file(info->d_name, *options, buf, head);
+		if (info->d_type & DT_REG)
+		{
+		 	stat(info->d_name, &buf);
+		 	ft_read_file(info->d_name, *options, buf, head);
 		}
 		else if (info->d_type & DT_DIR)
 		{
-			//printf("->	%s\n", info->d_name);
 			lstat(info->d_name, &buf);
-			//ft_push_fname(head, info->d_name);
-			//ft_get_user_group(buf, head);
 		 	ft_read_file(info->d_name, *options, buf, head);
 		}
-		/*if (options->R)
-		{
-			//
-			//ft_read_file(buf, &head);
-			//ft_read_args(info->d_name, options, &head);
-		}	
-		else
-			printf("->	%s\n", info->d_name);*/
 	}
 }
 
@@ -280,11 +258,6 @@ void ft_read_args(char *name, t_opt *options, t_flist **head)
 	ret = stat(name, &buf);
 	if (ret >= 0)
 	{
-		/*if (!ft_strequ(name, "."))
-		{
-			ft_push_fname(head, name);
-			ft_get_user_group(buf, head);
-		}*/
 		if (S_ISREG(buf.st_mode))
 			ft_read_file(name, *options, buf, head);
 		else if (S_ISDIR(buf.st_mode))
@@ -298,7 +271,6 @@ void ft_read_args(char *name, t_opt *options, t_flist **head)
 	}
 	else
 		perror(strerror(ret));
-//ft_printf("%s %8s %8s\n", __FUNCTION__, (*head)->user, (*head)->group);
 }
 
 int	main(int argc, char **argv)
@@ -353,6 +325,6 @@ int	main(int argc, char **argv)
 	ft_print_flist(head);
 	ft_delete_flist(&head);
 	free(options);
-	system("leaks ft_ls");
+	//system("leaks ft_ls");
 	return 0;
 }
