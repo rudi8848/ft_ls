@@ -59,17 +59,22 @@ typedef struct		s_flist
 	struct s_flist	*next;
 }					t_flist;
 
-void	ft_read_args(char *name, t_opt *options, t_flist **head);
-void	ft_get_time(struct stat buf, t_flist **head);
-void	ft_read_file();
-void	ft_read_dir(DIR *dirp, t_opt *options, t_flist **head);
-void	ft_get_user_group(struct stat buf, t_flist **head);
-void	ft_sort_flist(void)
+void		ft_read_args(char *name, t_opt *options, t_flist **head);
+void		ft_get_time(struct stat buf, t_flist **head);
+void		ft_read_file();
+void		ft_read_dir(DIR *dirp, t_opt *options, t_flist **head);
+void		ft_get_user_group(struct stat buf, t_flist **head);
+int			ft_flist_count(t_flist *head);
+void		ft_sort_flist(void)
 {
 	;
 }
 void		ft_print_flist(t_opt options, t_flist *head)
 {
+	int total;
+
+	total = ft_flist_count(head);
+	ft_printf("total %d\n", total);
 	while (head->next)
 	{
 		if (options.l)
@@ -78,7 +83,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 				head->size, head->month, head->day, head->time,
 				head->name);
 		else
-			ft_printf("%15s\n", head->name);
+			ft_printf("%-15s\n", head->name);
 		head = head->next;
 	}
 }
@@ -109,7 +114,20 @@ void		ft_delete_flist(t_flist **head)
 	free(*head);
 }
 
+int			ft_flist_count(t_flist *head)
+{
+	int			i;
 
+	i = 0;
+	if (!head)
+		return (0);
+	while (head->next)
+	{
+		head = head->next;
+		i += head->nlink;
+	}
+	return (i);
+}
 void		ft_push_fname(t_flist **head, char *name)
 {
 	t_flist *tmp;
@@ -124,7 +142,7 @@ void		ft_push_fname(t_flist **head, char *name)
 	tmp->next = (*head);
 	(*head) = tmp;
 }
-
+/*
 t_flist		*ft_get_last(t_flist *head)
 {			
 	if (head == NULL)
@@ -150,7 +168,7 @@ void		ft_push_back_fname(t_flist *head, char *name)
 	tmp->next = NULL;
 	last->next = tmp;
 }
-
+*/
 
 void		ft_get_size(struct stat buf, t_flist **file)
 {
@@ -283,52 +301,55 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 		perror(strerror(ret));
 }
 
-int			main(int argc, char **argv)
+void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 {
 	int			i;
+
+	i = 1;
+	while (i < argc)
+	{
+		if (*argv[i] == '-')
+		{
+			++argv[i];
+			while (*argv[i] && ft_isalnum(*argv[i]))
+			{
+				if (*argv[i] == 'a' || *argv[i] == 'l' || *argv[i] == 'R'
+					|| *argv[i] == 'r' || *argv[i] == 't')
+				{
+					(*argv[i] == 'a') ? (options->a = 1) : (options->a = 0);
+					(*argv[i] == 'l') ? (options->l = 1) : (options->l = 0);
+					(*argv[i] == 'R') ? (options->rr = 1) : (options->rr = 0);
+					(*argv[i] == 'r') ? (options->r = 1) : (options->r = 0);
+					(*argv[i] == 't') ? (options->t = 1) : (options->t = 0);
+				}
+				else
+				{
+					ft_printf("illegal option '%c'\n", *argv[i]);
+					exit (1);
+				}
+				argv[i]++;
+			}
+			i++;
+	}
+	if (!argv[i])
+		ft_read_args(".", options, head);
+	else
+		ft_read_args(argv[i], options, head);
+			i++;
+	}
+}
+
+int			main(int argc, char **argv)
+{
 	t_flist		*head;
 	t_opt		*options;
 
-	i = 1;
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
 		perror("Error");
 	if (argc > 1)
-	{
-		while (i < argc)
-		{
-			if (*argv[i] == '-')
-			{
-				++argv[i];
-				while (*argv[i] && ft_isalnum(*argv[i]))
-				{
-					if (*argv[i] == 'a')
-						options->a = 1;
-					else if (*argv[i] == 'l')
-						options->l = 1;
-					else if (*argv[i] == 'R')
-						options->rr = 1;
-					else if (*argv[i] == 'r')
-						options->r = 1;
-					else if (*argv[i] == 't')
-						options->t = 1;
-					else
-					{
-						printf("illegal option '%c'\n", *argv[i]);
-						return (1);
-					}
-					argv[i]++;
-				}
-				i++;
-		}
-		if (!argv[i])
-			ft_read_args(".", options, &head);
-		else
-			ft_read_args(argv[i], options, &head);
-				i++;
-		}
-	}
+		ft_parse_args(argc, argv, options, &head);
 	else
 		ft_read_args(".", options, &head);
 	ft_sort_flist();
