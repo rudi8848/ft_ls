@@ -91,6 +91,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 void		ft_clean_flist(t_flist *file)
 {
 	ft_strdel(&file->name);
+	ft_strdel(&file->path);
 	ft_strdel(&file->mode);
 	ft_strdel(&file->user);
 	ft_strdel(&file->group);
@@ -135,6 +136,8 @@ int			ft_flist_count(t_flist *head)
 void		ft_push_fname(t_flist **head, char *path)
 {
 	t_flist *tmp;
+	char **arr_name;
+	int i = 0;
 
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!tmp)
@@ -143,7 +146,16 @@ void		ft_push_fname(t_flist **head, char *path)
 		exit(1);
 	}
 	tmp->path = ft_strdup(path);
-	tmp->name = tmp->path;
+	arr_name = ft_strsplit(path, '/');
+	while (arr_name[i] != NULL)
+		i++;
+	tmp->name = ft_strdup(arr_name[i - 1]);
+	while (i)
+	{
+		free(arr_name[i]);
+		i--;
+	}
+	free(*arr_name);
 	tmp->next = (*head);
 	(*head) = tmp;
 }
@@ -254,6 +266,7 @@ void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
 	struct stat 	buf = {0};
 	DIR				*dirp = NULL;
 	char			*path;
+	char			*prefix;
 
 
 	dirp = opendir(name);
@@ -269,19 +282,16 @@ void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
 			perror("readdir");
 			exit(1);
 		}
-		path = ft_strjoin(name, "/");
-		path = ft_strjoin(path, info->d_name);
 		if (! options->a)
 		{
 			if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, "..") || (*info).d_name[0] == '.')
-		 	{
 		 		continue;
-		 	}
 		}
+		prefix = ft_strjoin(name, "/");
+		path = ft_strjoin(prefix, info->d_name);
 		if (info->d_type & DT_REG)
 		{
 			stat(/*info->d_name*/path, &buf);
-			
 			ft_read_file(/*info->d_name*/path, *options, buf, head);
 			
 		}
@@ -290,9 +300,9 @@ void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
 			stat(/*info->d_name*/path, &buf);
 			ft_read_file(/*info->d_name*/path, *options, buf, head);
 		}
-		
+		free(prefix);
+		free(path);
 	}
-	free(path);
 	closedir(dirp);
 }
 
