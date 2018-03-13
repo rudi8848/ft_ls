@@ -61,8 +61,8 @@ typedef struct		s_flist
 
 void		ft_read_args(char *name, t_opt *options, t_flist **head);
 void		ft_get_time(struct stat buf, t_flist **head);
-void		ft_read_file();
-void		ft_read_dir(DIR *dirp, t_opt *options, t_flist **head);
+//void		ft_read_file();
+//void		ft_read_dir(/*DIR **dirp,*/ t_opt *options, t_flist **head);
 void		ft_get_user_group(struct stat buf, t_flist **head);
 int			ft_flist_count(t_flist *head);
 void		ft_sort_flist(void)
@@ -121,15 +121,18 @@ int			ft_flist_count(t_flist *head)
 	i = 0;
 	if (!head)
 		return (0);
+	//printf("\n------------------>head%p, name %s\n",&head, head->name);
 	while (head->next)
 	{
+
 		head = head->next;
+	//	printf("\n------------------>head %p, name %s\n",&head, head->name);
 		i++;
 	}
 	return (i);
 }
 
-void		ft_push_fname(t_flist **head, char *name)
+void		ft_push_fname(t_flist **head, char *path)
 {
 	t_flist *tmp;
 
@@ -139,7 +142,8 @@ void		ft_push_fname(t_flist **head, char *name)
 		perror("ft_memalloc");
 		exit(1);
 	}
-	tmp->name = ft_strdup(name);
+	tmp->path = ft_strdup(path);
+	tmp->name = tmp->path;
 	tmp->next = (*head);
 	(*head) = tmp;
 }
@@ -207,6 +211,7 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 		exit(1);
 	}
 	//printf("\n-------%s %s mode: %hd---------\n", __FUNCTION__, (*file)->name, buf.st_mode);
+	
 	(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
 	(*file)->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
 	(*file)->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
@@ -230,9 +235,9 @@ void		ft_read_link(struct stat buf, t_flist *head)
 	;
 }
 
-void		ft_read_file(char *name, t_opt options, struct stat buf, t_flist **head)
+void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
-	ft_push_fname(head, name);
+	ft_push_fname(head, path);
 	if (options.l)
 	{
 		ft_get_mode(buf, head);
@@ -243,31 +248,52 @@ void		ft_read_file(char *name, t_opt options, struct stat buf, t_flist **head)
 	}
 }
 
-void		ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
+void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
 {
-	struct dirent 	*info;
+	struct dirent 	*info = NULL;
 	struct stat 	buf = {0};
+	DIR				*dirp = NULL;
+	char			*path;
 
+
+	dirp = opendir(name);
+	if (dirp == NULL)
+	{
+		perror("onendir");
+		exit(1);
+	}
 	while ((info = readdir(dirp)))
 	{
-		/*if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, ".."))
+		if (info == NULL)
+		{
+			perror("readdir");
+			exit(1);
+		}
+		path = ft_strjoin(name, "/");
+		path = ft_strjoin(path, info->d_name);
+		if (! options->a)
+		{
+			if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, "..") || (*info).d_name[0] == '.')
 		 	{
-		 		printf("%s\n", info->d_name);
 		 		continue;
-		 	}*/
+		 	}
+		}
 		if (info->d_type & DT_REG)
 		{
-			//printf("\n------- reg %s---------\n", info->d_name);
-			stat(info->d_name, &buf);
-			ft_read_file(info->d_name, *options, buf, head);
+			stat(/*info->d_name*/path, &buf);
+			
+			ft_read_file(/*info->d_name*/path, *options, buf, head);
+			
 		}
 		else if (info->d_type & DT_DIR)
 		{
-			//printf("\n------- dir %s---------\n", info->d_name);
-			lstat(info->d_name, &buf);
-			ft_read_file(info->d_name, *options, buf, head);
+			stat(/*info->d_name*/path, &buf);
+			ft_read_file(/*info->d_name*/path, *options, buf, head);
 		}
+		
 	}
+	free(path);
+	closedir(dirp);
 }
 
 void		ft_get_user_group(struct stat buf, t_flist **head)
@@ -285,7 +311,7 @@ void		ft_get_user_group(struct stat buf, t_flist **head)
 void		ft_read_args(char *name, t_opt *options, t_flist **head)
 {
 	int				ret;
-	DIR				*dirp;
+	//DIR				*dirp = NULL;
 	struct stat		buf;
 
 	ret = stat(name, &buf);
@@ -295,12 +321,13 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 			ft_read_file(name, *options, buf, head);
 		else if (S_ISDIR(buf.st_mode))
 		{
-			dirp = opendir(name);
-			ft_read_dir(dirp, options, head);
-			closedir(dirp);
+			//dirp = opendir(name);
+			ft_read_dir(/*&dirp,*/name, options, head);
+			//closedir(dirp);
 		}
 		else if (S_ISLNK(buf.st_mode))
-			ft_read_link(buf, *head);
+			//ft_read_file(name, *options, buf, head);
+			;
 	}
 	else
 		perror(strerror(ret));
@@ -321,11 +348,16 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 				if (*argv[i] == 'a' || *argv[i] == 'l' || *argv[i] == 'R'
 					|| *argv[i] == 'r' || *argv[i] == 't')
 				{
-					(*argv[i] == 'a') ? (options->a = 1) : (options->a = 0);
-					(*argv[i] == 'l') ? (options->l = 1) : (options->l = 0);
-					(*argv[i] == 'R') ? (options->rr = 1) : (options->rr = 0);
-					(*argv[i] == 'r') ? (options->r = 1) : (options->r = 0);
-					(*argv[i] == 't') ? (options->t = 1) : (options->t = 0);
+					if (*argv[i] == 'a')
+						options->a = 1;
+					if (*argv[i] == 'l')
+						options->l = 1;
+					if (*argv[i] == 'R')
+						options->rr = 1;
+					if (*argv[i] == 'r')
+						options->r = 1;
+					if (*argv[i] == 't')
+						options->t = 1;
 				}
 				else
 				{
