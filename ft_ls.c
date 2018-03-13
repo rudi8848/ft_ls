@@ -124,6 +124,7 @@ int			ft_flist_count(t_flist *head)
 	while (head->next)
 	{
 		head = head->next;
+		i++;
 	}
 	return (i);
 }
@@ -205,7 +206,7 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 		perror("ft_strnew");
 		exit(1);
 	}
-	printf("\n-------%s %s mode: %hd---------\n", __FUNCTION__, (*file)->name, buf.st_mode);
+	//printf("\n-------%s %s mode: %hd---------\n", __FUNCTION__, (*file)->name, buf.st_mode);
 	(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
 	(*file)->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
 	(*file)->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
@@ -216,7 +217,7 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	(*file)->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	(*file)->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
-	printf("\n-------%s %s mode: %s---------\n", __FUNCTION__, (*file)->name, (*file)->mode);
+	//printf("\n-------%s %s mode: %s---------\n", __FUNCTION__, (*file)->name, (*file)->mode);
 }
 
 void		ft_get_links(struct stat buf, t_flist **file)
@@ -256,13 +257,13 @@ void		ft_read_dir(DIR *dirp, t_opt *options, t_flist **head)
 		 	}*/
 		if (info->d_type & DT_REG)
 		{
-			printf("\n------- reg %s---------\n", info->d_name);
+			//printf("\n------- reg %s---------\n", info->d_name);
 			stat(info->d_name, &buf);
 			ft_read_file(info->d_name, *options, buf, head);
 		}
 		else if (info->d_type & DT_DIR)
 		{
-			printf("\n------- dir %s---------\n", info->d_name);
+			//printf("\n------- dir %s---------\n", info->d_name);
 			lstat(info->d_name, &buf);
 			ft_read_file(info->d_name, *options, buf, head);
 		}
