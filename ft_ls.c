@@ -257,8 +257,10 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 		exit(1);
 	}
 	//printf("\n-------%s %s mode: %hd---------\n", __FUNCTION__, (*file)->name, buf.st_mode);
-	
-	(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
+	if (S_ISLNK(buf.st_mode))
+		(*file)->mode[0] = 'l';
+	else
+		(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
 	(*file)->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
 	(*file)->mode[2] = S_IWUSR & buf.st_mode ? 'w' : '-';
 	(*file)->mode[3] = S_IXUSR & buf.st_mode ? 'x' : '-';
@@ -276,9 +278,9 @@ void		ft_get_links(struct stat buf, t_flist **file)
 	(*file)->nlink = buf.st_nlink;
 }
 
-void		ft_read_link(struct stat buf, t_flist *head)
+void		ft_read_link(char *name, char *path, t_flist *head)
 {
-	;
+		;
 }
 
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
@@ -294,7 +296,7 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 	}
 }
 
-void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
+void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 {
 	struct dirent 	*info = NULL;
 	struct stat 	buf = {0};
@@ -323,9 +325,14 @@ void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head)
 		}
 		prefix = ft_strjoin(name, "/");
 		path = ft_strjoin(prefix, info->d_name);
-		if (info->d_type & DT_REG)
+		if (info->d_type &DT_LNK)
 		{
-			stat(/*info->d_name*/path, &buf);
+			lstat(path, &buf);
+			ft_read_file(path, *options, buf,head);
+		}
+		else if (info->d_type & DT_REG)
+		{
+			stat(path, &buf);
 			ft_read_file(/*info->d_name*/path, *options, buf, head);
 			
 		}
@@ -361,7 +368,12 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 	ret = stat(name, &buf);
 	if (ret >= 0)
 	{
-		if (S_ISREG(buf.st_mode))
+		if (S_ISLNK(buf.st_mode))
+		{
+			lstat(name, &buf);
+			ft_read_file(name, *options, buf, head);
+		}
+		else if (S_ISREG(buf.st_mode))
 			ft_read_file(name, *options, buf, head);
 		else if (S_ISDIR(buf.st_mode))
 		{
@@ -369,9 +381,6 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 			ft_read_dir(/*&dirp,*/name, options, head);
 			//closedir(dirp);
 		}
-		else if (S_ISLNK(buf.st_mode))
-			//ft_read_file(name, *options, buf, head);
-			;
 	}
 	else
 		perror(strerror(ret));
