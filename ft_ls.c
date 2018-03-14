@@ -93,12 +93,11 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	}
 	if (options.rr)
 		{
-			//phead = head;
 			while (phead->next)
 			{
 				struct stat buf;
 				stat(phead->path, &buf);
-				if (buf.st_mode & S_IFDIR && buf.st_nlink > 1)
+				if (buf.st_mode & S_IFDIR && buf.st_nlink > 1 && !ft_strequ(phead->name, ".") && !ft_strequ(phead->name, ".."))
 					print_recursion(phead->path, options);
 				phead = phead->next;
 			}
