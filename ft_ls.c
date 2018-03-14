@@ -156,12 +156,9 @@ int			ft_flist_count(t_flist *head)
 	i = 0;
 	if (!head)
 		return (0);
-	//printf("\n------------------>head%p, name %s\n",&head, head->name);
 	while (head->next)
 	{
-
 		head = head->next;
-	//	printf("\n------------------>head %p, name %s\n",&head, head->name);
 		i++;
 	}
 	return (i);
@@ -253,10 +250,9 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode = ft_strnew(10);
 	if (!(*file)->mode)
 	{
-		perror("ft_strnew");
+		perror("Error");
 		exit(1);
 	}
-	//printf("\n-------%s %s mode: %hd---------\n", __FUNCTION__, (*file)->name, buf.st_mode);
 	if (S_ISLNK(buf.st_mode))
 		(*file)->mode[0] = 'l';
 	else
@@ -270,7 +266,6 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	(*file)->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	(*file)->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
-	//printf("\n-------%s %s mode: %s---------\n", __FUNCTION__, (*file)->name, (*file)->mode);
 }
 
 void		ft_get_links(struct stat buf, t_flist **file)
@@ -308,14 +303,14 @@ void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 	dirp = opendir(name);
 	if (dirp == NULL)
 	{
-		perror("onendir");
+		perror("cannot open");
 		exit(1);
 	}
 	while ((info = readdir(dirp)))
 	{
 		if (info == NULL)
 		{
-			perror("readdir");
+			perror("cannot read");
 			exit(1);
 		}
 		if (! options->a)
@@ -333,13 +328,13 @@ void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 		else if (info->d_type & DT_REG)
 		{
 			stat(path, &buf);
-			ft_read_file(/*info->d_name*/path, *options, buf, head);
+			ft_read_file(path, *options, buf, head);
 			
 		}
 		else if (info->d_type & DT_DIR)
 		{
-			stat(/*info->d_name*/path, &buf);
-			ft_read_file(/*info->d_name*/path, *options, buf, head);
+			stat(path, &buf);
+			ft_read_file(path, *options, buf, head);
 		}
 		free(prefix);
 		free(path);
@@ -362,7 +357,6 @@ void		ft_get_user_group(struct stat buf, t_flist **head)
 void		ft_read_args(char *name, t_opt *options, t_flist **head)
 {
 	int				ret;
-	//DIR				*dirp = NULL;
 	struct stat		buf;
 
 	ret = stat(name, &buf);
@@ -377,13 +371,11 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 			ft_read_file(name, *options, buf, head);
 		else if (S_ISDIR(buf.st_mode))
 		{
-			//dirp = opendir(name);
-			ft_read_dir(/*&dirp,*/name, options, head);
-			//closedir(dirp);
+			ft_read_dir(name, options, head);
 		}
 	}
 	else
-		perror(strerror(ret));
+		perror("cannot access");
 }
 
 void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
