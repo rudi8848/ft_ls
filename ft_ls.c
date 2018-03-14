@@ -65,6 +65,8 @@ void		ft_get_time(struct stat buf, t_flist **head);
 //void		ft_read_dir(/*DIR **dirp,*/ t_opt *options, t_flist **head);
 void		ft_get_user_group(struct stat buf, t_flist **head);
 int			ft_flist_count(t_flist *head);
+void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head);
+void	print_recursion(char *path, t_opt options);
 void		ft_sort_flist(void)
 {
 	;
@@ -72,20 +74,51 @@ void		ft_sort_flist(void)
 void		ft_print_flist(t_opt options, t_flist *head)
 {
 	int total;
+	t_flist *phead;
 
+	phead = head;
 	total = ft_flist_count(head);
 	ft_printf("total %d\n", total);
 	while (head->next)
 	{
 		if (options.l)
-			ft_printf("%5s %3hi %5s %5s %5llD %4s %3s %-5.5s %-8s\n",
-				head->mode, head->nlink, head->user, head->group,
+			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %-8s\n",
+		head->mode, head->nlink, head->user, head->group,
 				head->size, head->month, head->day, head->time,
 				head->name);
 		else
-			ft_printf("%-15s\n", head->name);
+			printf("%-15s\n", head->name);
 		head = head->next;
+		
 	}
+	if (options.rr)
+		{
+			//phead = head;
+			while (phead->next)
+			{
+				struct stat buf;
+				stat(phead->path, &buf);
+				if (buf.st_mode & S_IFDIR && buf.st_nlink > 1)
+					print_recursion(phead->path, options);
+				phead = phead->next;
+			}
+		}
+}
+
+void	print_recursion(char *path, t_opt options)
+{
+	printf("\n--------------%s-----------\n%s\n", __FUNCTION__, path);
+	t_flist		*new_head;
+
+	new_head = (t_flist*)ft_memalloc(sizeof(t_flist));
+	if (! new_head)
+	{
+		perror(__FUNCTION__);
+		exit(1);
+	}
+	ft_read_dir(path, &options, &new_head);
+	ft_print_flist(options, new_head);
+
 }
 
 void		ft_clean_flist(t_flist *file)

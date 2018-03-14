@@ -17,9 +17,9 @@ static	size_t		word_len(char const *s, int start, char c)
 	size_t		len;
 
 	len = 0;
-	while (s[start] == c)
+	while (s[start] && s[start] == c)
 		start++;
-	while (s[start] != c)
+	while (s[start] && s[start] != c)
 	{
 		len++;
 		start++;
