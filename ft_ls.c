@@ -67,6 +67,7 @@ void		ft_get_user_group(struct stat buf, t_flist **head);
 int			ft_flist_count(t_flist *head);
 void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head);
 void	print_recursion(char *path, t_opt options);
+void		ft_clean_flist(t_flist *file);
 void		ft_sort_flist(void)
 {
 	;
@@ -117,6 +118,7 @@ void	print_recursion(char *path, t_opt options)
 	}
 	ft_read_dir(path, &options, &new_head);
 	ft_print_flist(options, new_head);
+	ft_clean_flist(new_head);
 
 }
 
