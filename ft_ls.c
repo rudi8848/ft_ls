@@ -76,10 +76,8 @@ int			ft_flist_count(t_flist *head);
 void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head);
 void	print_recursion(char *path, t_opt options);
 void		ft_clean_flist(t_flist *file);
-void		ft_sort_flist(void)
-{
-	;
-}
+//void		ft_sort_flist(void)
+
 void		ft_print_flist(t_opt options, t_flist *head)
 {
 	int total;
@@ -181,7 +179,7 @@ void		ft_push_fname(t_flist **head, char *path)
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!tmp)
 	{
-		perror("ft_memalloc");
+		perror("cannot allocate memory");
 		exit(1);
 	}
 	tmp->path = ft_strdup(path);
@@ -287,7 +285,7 @@ void		ft_read_link(char *name, char *path, t_flist *head)
 		;
 }
 
-void		ft_color_hidden(t_flist *head)
+/*void		ft_color_hidden(t_flist *head)
 {
 	char	*tmp1;
 	char	*tmp2;
@@ -302,14 +300,14 @@ void		ft_color_hidden(t_flist *head)
 	free(head->name);
 	head->name = ft_strdup(tmp1);
 	free(tmp1);
-}
+}*/
 
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
 	char		*tmpname;
 
 	ft_push_fname(head, path);
-	if (buf.st_mode & S_IFDIR)
+	/*if (buf.st_mode & S_IFDIR)
 	{
 		if (!(((*head)->name[0]) == '.'))
 		{
@@ -318,9 +316,7 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 			(*head)->name = ft_strjoin(tmpname, RESET);
 			free(tmpname);
 		}
-		else
-			ft_color_hidden(*head);
-	}
+	}*/
 	if (options.l)
 	{
 		ft_get_mode(buf, head);
@@ -463,6 +459,35 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 	if (!f)
 		ft_read_args(".", options, head);
 }
+t_flist *ft_sort_flist(t_flist *root )
+{
+	printf("-----------%s--------------\n",__FUNCTION__ );
+    t_flist *new_root = NULL;
+
+    while ( root != NULL )
+    {
+        t_flist *node = root;
+        root = root->next;
+
+        if ( new_root == NULL || (strcmp(node->name, new_root->name) < 0) )
+        {
+            node->next = new_root;
+            new_root = node;
+        }
+        else
+        {
+            t_flist *current = new_root;
+            while ( current->next != NULL && !(strcmp(node->name, current->next->name) < 0) )
+            {                   
+                  current = current->next;
+            }                
+
+            node->next = current->next;
+            current->next = node;
+        }
+    }
+    return new_root;
+}
 
 int			main(int argc, char **argv)
 {
@@ -473,11 +498,12 @@ int			main(int argc, char **argv)
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
 		perror("Error");
+	head->next = NULL;
 	if (argc > 1)
 		ft_parse_args(argc, argv, options, &head);
 	else
 		ft_read_args(".", options, &head);
-	ft_sort_flist();
+	head = ft_sort_flist(head);
 	ft_print_flist(*options, head);
 	ft_delete_flist(&head);
 	free(options);

@@ -31,28 +31,20 @@ void		ft_print_flist( t_flist *head)
 		printf("%-15s\n", head->name);
 		head = head->next;
 	}
+	//printf("out of loop\n");
 }
 
-t_flist		*ft_push_fname(t_flist *head, char *name)
+void		ft_push_fname(t_flist **head, char *name)
 {
 	printf("-----------%s-%s-------------\n",__FUNCTION__,name );
 	t_flist *tmp;
 
 	tmp = (t_flist*)malloc(sizeof(t_flist));
-	if (tmp)
-	{
-		tmp->name = strdup(name);
-		if (head)
-		{
-			tmp->next = head->next;
-			head->next = tmp;
-		}
-		else
-			tmp->next = NULL;
-		return  tmp;
-	}
-	return NULL;
-	
+	if (!tmp)
+		exit(1);
+	tmp->name = strdup(name);
+	tmp->next = (*head);
+	(*head) = tmp;	
 }
 
 int			ft_flist_count(t_flist *head)
@@ -150,8 +142,8 @@ t_flist *sort( t_flist *root )
 int 		main(int argc, char **argv)
 {
 	printf("-----------%s--------------\n",__FUNCTION__ );
-	t_flist *head = NULL;
-	t_flist **tmp = &head;
+	t_flist *head;
+	
 
 	int i = 1;
 
@@ -161,19 +153,16 @@ int 		main(int argc, char **argv)
 		perror(__FUNCTION__);
 		exit(1);
 	}
+	head->next = NULL;
 	while (i < argc)
 	{
-		*tmp = ft_push_fname(*tmp, argv[i]);
+		ft_push_fname(&head, argv[i]);
 		i++;
 	}
 	ft_print_flist(head);
+		printf("-----------%s--------------\n",__FUNCTION__ );
 	head = sort(head);
 	ft_print_flist(head);
-	/*
-	if (strcmp(argv[1], argv[2]) < 0)
-		printf("%s\n%s\n",argv[1], argv[2]);
-	else
-		printf("%s\n%s\n",argv[2], argv[1]);
-*/
+
 	return 0;
 }
