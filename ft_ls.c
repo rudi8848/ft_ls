@@ -76,17 +76,21 @@ int			ft_flist_count(t_flist *head);
 void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head);
 void	print_recursion(char *path, t_opt options);
 void		ft_clean_flist(t_flist *file);
-//void		ft_sort_flist(void)
+t_flist		*ft_sort_flist(t_opt *options, t_flist *head);
+t_flist		*ft_sort_by_name(t_flist *head);
+t_flist		*ft_reverse_sort_by_name(t_flist *head);
+t_flist		*ft_sort_by_mtime(t_flist *head);
 
 void		ft_print_flist(t_opt options, t_flist *head)
 {
 	int total;
 	t_flist *phead;
 
+	head = ft_sort_flist(&options, head);
 	phead = head;
 	total = ft_flist_count(head);
 	ft_printf("total %d\n", total);
-	while (head->next)
+	while (head/*->next*/)
 	{
 		if (options.l)
 			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %-8s\n",
@@ -100,7 +104,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	}
 	if (options.rr)
 		{
-			while (phead->next)
+			while (phead/*->next*/)
 			{
 				struct stat buf;
 				stat(phead->path, &buf);
@@ -459,36 +463,92 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 	if (!f)
 		ft_read_args(".", options, head);
 }
-t_flist *ft_sort_flist(t_flist *root )
+
+t_flist			*ft_sort_flist(t_opt *options, t_flist *head)
 {
-	printf("-----------%s--------------\n",__FUNCTION__ );
-    t_flist *new_root = NULL;
+	if (!options->r && !options->t)
+		head = ft_sort_by_name(head);
+	else if (options->r)
+		head = ft_reverse_sort_by_name(head);
+	else if (options->t)
+		head = ft_sort_by_mtime(head);
+	return (head);
+}
 
-    while ( root != NULL )
+t_flist 		*ft_reverse_sort_by_name(t_flist *head)
+{
+	t_flist *a = NULL;
+
+    while ( head != NULL )
     {
-        t_flist *node = root;
-        root = root->next;
+        t_flist *b;
 
-        if ( new_root == NULL || (strcmp(node->name, new_root->name) < 0) )
+        if(head->next)
+        	b = head;
+        else
+        	return a;
+        head = head->next;
+
+        if ( a == NULL || (strcmp(b->name, a->name) > 0) )
         {
-            node->next = new_root;
-            new_root = node;
+            b->next = a;
+            a = b;
         }
         else
         {
-            t_flist *current = new_root;
-            while ( current->next != NULL && !(strcmp(node->name, current->next->name) < 0) )
+            t_flist *c;
+            c = a;
+            while ( c->next != NULL && !(strcmp(b->name, c->next->name) > 0) )
             {                   
-                  current = current->next;
+                  c = c->next;
             }                
 
-            node->next = current->next;
-            current->next = node;
+            b->next = c->next;
+            c->next = b;
         }
     }
-    return new_root;
+    return a;
 }
 
+t_flist 		*ft_sort_by_mtime(t_flist *head)
+{
+	return (NULL);
+}
+
+t_flist 		*ft_sort_by_name(t_flist *head)
+{
+    t_flist *a = NULL;
+
+    while ( head != NULL )
+    {
+        t_flist *b;
+
+        if(head->next)
+        	b = head;
+        else
+        	return a;
+        head = head->next;
+
+        if ( a == NULL || (strcmp(b->name, a->name) < 0) )
+        {
+            b->next = a;
+            a = b;
+        }
+        else
+        {
+            t_flist *c;
+            c = a;
+            while ( c->next != NULL && !(strcmp(b->name, c->next->name) < 0) )
+            {                   
+                  c = c->next;
+            }                
+
+            b->next = c->next;
+            c->next = b;
+        }
+    }
+    return a;
+}
 int			main(int argc, char **argv)
 {
 	t_flist		*head;
@@ -503,7 +563,7 @@ int			main(int argc, char **argv)
 		ft_parse_args(argc, argv, options, &head);
 	else
 		ft_read_args(".", options, &head);
-	head = ft_sort_flist(head);
+	
 	ft_print_flist(*options, head);
 	ft_delete_flist(&head);
 	free(options);

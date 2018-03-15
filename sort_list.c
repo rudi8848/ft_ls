@@ -110,31 +110,37 @@ t_flist *sort(t_flist *head)			// функция возвращает загол
 t_flist *sort( t_flist *root )
 {
 	printf("-----------%s--------------\n",__FUNCTION__ );
-    t_flist *new_root = NULL;
+    t_flist *a = NULL;
 
     while ( root != NULL )
     {
-        t_flist *node = root;
+        t_flist *b;
+
+        if(root->next)
+        	b = root;
+        else
+        	return a;
         root = root->next;
 
-        if ( new_root == NULL || (strcmp(node->name, new_root->name) < 0) )
+        if ( a == NULL || (strcmp(b->name, a->name) < 0) )
         {
-            node->next = new_root;
-            new_root = node;
+            b->next = a;
+            a = b;
         }
         else
         {
-            t_flist *current = new_root;
-            while ( current->next != NULL && !(strcmp(node->name, current->next->name) < 0) )
+            t_flist *c;
+            c = a;
+            while ( c->next != NULL && !(strcmp(b->name, c->next->name) < 0) )
             {                   
-                  current = current->next;
+                  c = c->next;
             }                
 
-            node->next = current->next;
-            current->next = node;
+            b->next = c->next;
+            c->next = b;
         }
     }
-    return new_root;
+    return a;
 }
 //------------------------------------------------------------
 
