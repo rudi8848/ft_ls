@@ -304,14 +304,14 @@ void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 	if (dirp == NULL)
 	{
 		perror("cannot open");
-		exit(1);
+		return;
 	}
 	while ((info = readdir(dirp)))
 	{
 		if (info == NULL)
 		{
 			perror("cannot read");
-			exit(1);
+			continue;
 		}
 		if (! options->a)
 		{
