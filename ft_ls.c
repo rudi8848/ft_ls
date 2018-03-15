@@ -10,6 +10,13 @@
 #include "libftprintf/includes/ft_printf.h"
 #include <errno.h>
 
+#define RESET	"\033[0m"
+#define BOLD	"\033[1m"
+#define RED 	"\033[1;31m"
+#define YELLOW	"\033[1;33m"
+#define CYAN	"\033[1;36m"
+#define WHITE	"\033[1;37m"
+
 typedef	struct	s_opt
 {
 	int			a;
@@ -56,6 +63,7 @@ typedef struct		s_flist
 	char			*day;
 	char			*month;
 	char			*time;
+	time_t			mtime;
 	struct s_flist	*next;
 }					t_flist;
 
@@ -229,6 +237,7 @@ void		ft_get_time(struct stat buf, t_flist **file)
 	int		i;
 
 	i = T_DOW;
+	(*file)->mtime = buf.st_mtime;
 	date = ft_strsplit(ctime(&buf.st_mtime), ' ');
 	if (!date)
 	{
@@ -278,9 +287,40 @@ void		ft_read_link(char *name, char *path, t_flist *head)
 		;
 }
 
+void		ft_color_hidden(t_flist *head)
+{
+	char	*tmp1;
+	char	*tmp2;
+
+	tmp1 = ft_strdup(head->name + 1);	//name
+	free(head->name);					//null
+	tmp2 = ft_strjoin(".", CYAN);			//.CYAN
+	head->name = ft_strjoin(tmp2, tmp1);//.CYANname
+	free(tmp1);
+	free(tmp2);
+	tmp1 = ft_strjoin(head->name, RESET);
+	free(head->name);
+	head->name = ft_strdup(tmp1);
+	free(tmp1);
+}
+
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
+	char		*tmpname;
+
 	ft_push_fname(head, path);
+	if (buf.st_mode & S_IFDIR)
+	{
+		if (!(((*head)->name[0]) == '.'))
+		{
+			tmpname = ft_strjoin(CYAN, (*head)->name);
+			free((*head)->name);
+			(*head)->name = ft_strjoin(tmpname, RESET);
+			free(tmpname);
+		}
+		else
+			ft_color_hidden(*head);
+	}
 	if (options.l)
 	{
 		ft_get_mode(buf, head);
