@@ -381,7 +381,7 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 {
 	int			i;
-
+	int			f = 0;
 	i = 1;
 	while (i < argc)
 	{
@@ -411,14 +411,17 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 				}
 				argv[i]++;
 			}
-			i++;
+	//		i++;
 	}
-	if (!argv[i])
-		ft_read_args(".", options, head);
 	else
+	{
 		ft_read_args(argv[i], options, head);
-			i++;
+		f++;
 	}
+	i++;
+	}
+	if (!f)
+		ft_read_args(".", options, head);
 }
 
 int			main(int argc, char **argv)
