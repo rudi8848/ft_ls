@@ -80,7 +80,7 @@ typedef enum
 } e_sort_order;
 
 
-void		ft_read_args(char *name, t_opt *options, t_flist **head);
+int		ft_read_args(char *name, t_opt *options, t_flist **head);
 void		ft_get_time(struct stat buf, t_flist **head);
 //void		ft_read_file();
 //void		ft_read_dir(/*DIR **dirp,*/ t_opt *options, t_flist **head);
@@ -362,73 +362,6 @@ void		ft_get_user_group(struct stat buf, t_flist **head)
 
 }
 
-void		ft_read_args(char *name, t_opt *options, t_flist **head)
-{
-	int				ret;
-	struct stat		buf;
-
-	ret = stat(name, &buf);
-	if (ret >= 0)
-	{
-		if (S_ISLNK(buf.st_mode))
-		{
-			lstat(name, &buf);
-			ft_read_file(name, *options, buf, head);
-		}
-		else if (S_ISREG(buf.st_mode))
-			ft_read_file(name, *options, buf, head);
-		else if (S_ISDIR(buf.st_mode))
-			ft_read_dir(name, options, head);
-	}
-	else
-			perror("cannot access");
-}
-
-void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
-{
-	int			i;
-	int			f = 0;
-	i = 1;
-	while (i < argc)
-	{
-		if (*argv[i] == '-')
-		{
-			++argv[i];
-			while (*argv[i] && ft_isalnum(*argv[i]))
-			{
-				if (*argv[i] == 'a' || *argv[i] == 'l' || *argv[i] == 'R'
-					|| *argv[i] == 'r' || *argv[i] == 't')
-				{
-					if (*argv[i] == 'a')
-						options->a = 1;
-					if (*argv[i] == 'l')
-						options->l = 1;
-					if (*argv[i] == 'R')
-						options->rr = 1;
-					if (*argv[i] == 'r')
-						options->r = 1;
-					if (*argv[i] == 't')
-						options->t = 1;
-				}
-				else
-				{
-					ft_printf("illegal option '%c'\n", *argv[i]);
-					exit (1);
-				}
-				argv[i]++;
-			}
-	}
-	else
-	{
-		ft_read_args(argv[i], options, head);
-		f++;
-	}
-	i++;
-	}
-	if (!f)
-		ft_read_args(".", options, head);
-}
-
 t_flist			*ft_sort_flist(t_opt *options, t_flist *head)
 {
 	pfCompare	cmp[SORT_ORDERS];
@@ -507,30 +440,106 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
     return (a);
 }
 
+int		ft_read_args(char *name, t_opt *options, t_flist **head)
+{
+	int				ret;
+	struct stat		buf;
+
+	ret = stat(name, &buf);
+	if (ret >= 0)
+	{
+		if (S_ISLNK(buf.st_mode))
+		{
+			lstat(name, &buf);
+			ft_read_file(name, *options, buf, head);
+		}
+		else if (S_ISREG(buf.st_mode))
+			ft_read_file(name, *options, buf, head);
+		else if (S_ISDIR(buf.st_mode))
+			ft_read_dir(name, options, head);
+		return (1);
+	}
+	else
+			perror("cannot access");
+		return (0);
+}
+
+int		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
+{
+	int			i;
+	int			f = 0;
+	int res = 0;
+
+	i = 1;
+	while (i < argc)
+	{
+		if (*argv[i] == '-')
+		{
+			++argv[i];
+			while (*argv[i] && ft_isalnum(*argv[i]))
+			{
+				if (*argv[i] == 'a' || *argv[i] == 'l' || *argv[i] == 'R'
+					|| *argv[i] == 'r' || *argv[i] == 't')
+				{
+					if (*argv[i] == 'a')
+						options->a = 1;
+					if (*argv[i] == 'l')
+						options->l = 1;
+					if (*argv[i] == 'R')
+						options->rr = 1;
+					if (*argv[i] == 'r')
+						options->r = 1;
+					if (*argv[i] == 't')
+						options->t = 1;
+				}
+				else
+				{
+					ft_printf("illegal option '%c'\n", *argv[i]);
+					exit (1);
+				}
+				argv[i]++;
+			}
+	}
+	else
+	{
+		res = ft_read_args(argv[i], options, head);
+		f++;
+	}
+	i++;
+	}
+	if (!f)
+		res = ft_read_args(".", options, head);
+	return (res);
+}
+
 int			main(int argc, char **argv)
 {
 	t_flist		*head = NULL;
 	t_opt		*options;
+	int			res;
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
-	/*
+	
 	printf("&head %p,	 &options %p\n", &head, &options);
 	printf("&head->name %p,	 &options->a %p\n", &head->name, &options->a);
 	printf("&head->path %p,	 &options->l %p\n", &head->path, &options->l);
 	printf("&head->mode %p,	 &options->r %p\n", &head->mode, &options->r);
-	*/
+	
 	if (!options || !head)
 		perror("Error");
 	head->next = NULL;
 	if (argc > 1)
-		ft_parse_args(argc, argv, options, &head);
+		res = ft_parse_args(argc, argv, options, &head);
 	else
-		ft_read_args(".", options, &head);
-	head = ft_sort_flist(options, head);
-	ft_print_flist(*options, head);
+		res = ft_read_args(".", options, &head);
+	if (res)
+	{
+		head = ft_sort_flist(options, head);
+		ft_print_flist(*options, head);
+	}
 	ft_delete_flist(head);
 	free(options);
-	//system("leaks ft_ls");
+	system("leaks ft_ls");
 	return (0);
 }
