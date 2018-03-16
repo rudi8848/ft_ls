@@ -92,7 +92,7 @@ void		ft_clean_flist(t_flist *file);
 t_flist		*ft_sort_flist(t_opt *options, t_flist *head);
 t_flist		*ft_sort_by_name(t_flist *head, pfCompare cmp);
 t_flist		*ft_sort_by_mtime(t_flist *head, pfCompare cmp);
-void		ft_delete_flist(t_flist **head);
+void		ft_delete_flist(t_flist *head);
 
 int			ft_cmp_ascending(int a, int b)
 {
@@ -106,13 +106,12 @@ int			ft_cmp_descending(int a, int b)
 
 void		ft_print_flist(t_opt options, t_flist *head)
 {
-	int total;
+	int total = 0;
 	t_flist *phead;
 
-	head = ft_sort_flist(&options, head);
 	phead = head;
-	total = ft_flist_count(head);
-	ft_printf("total %d\n", total);
+	//total = ft_flist_count(head);
+	//ft_printf("total %d\n", total);
 	while (head)
 	{
 		if (options.l)
@@ -122,9 +121,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 				head->name, RESET);
 		else
 			printf("%s%-15s%s\n", head->color, head->name, RESET);
-		ft_clean_flist(head);
 		head = head->next;
-		
 	}
 	if (options.rr)
 		{
@@ -151,8 +148,9 @@ void	print_recursion(char *path, t_opt options)
 		exit(1);
 	}
 	ft_read_dir(path, &options, &new_head);
+	new_head = ft_sort_flist(&options, new_head);
 	ft_print_flist(options, new_head);
-	ft_delete_flist(&new_head);
+	ft_delete_flist(new_head);
 
 }
 
@@ -168,22 +166,23 @@ void		ft_clean_flist(t_flist *file)
 	ft_strdel(&file->time);
 }
 
-void		ft_delete_flist(t_flist **head)
+void		ft_delete_flist(t_flist *head)
 {
-	printf("-------------%s\n",__FUNCTION__ );
 	t_flist 	*tmp;
 
-	while ((*head)->next)
+	while (head)
 	{
-		printf("---------%s -- %s\n", __FUNCTION__, tmp->name);
-		tmp = (*head);
-		*head = (*head)->next;
+		tmp = head;
+		head = head->next;
 		ft_clean_flist(tmp);
 		free(tmp);
 	}
-	ft_clean_flist(*head);
-	free(*head);
-	(*head) = NULL;
+	if (head)
+	{
+		ft_clean_flist(head);
+		free(head);
+	}
+	head = NULL;
 }
 
 
@@ -379,12 +378,10 @@ void		ft_read_args(char *name, t_opt *options, t_flist **head)
 		else if (S_ISREG(buf.st_mode))
 			ft_read_file(name, *options, buf, head);
 		else if (S_ISDIR(buf.st_mode))
-		{
 			ft_read_dir(name, options, head);
-		}
 	}
 	else
-		perror("cannot access");
+			perror("cannot access");
 }
 
 void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
@@ -512,24 +509,28 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
 
 int			main(int argc, char **argv)
 {
-	t_flist		*head;
-	t_flist		*start;
+	t_flist		*head = NULL;
 	t_opt		*options;
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
+	/*
+	printf("&head %p,	 &options %p\n", &head, &options);
+	printf("&head->name %p,	 &options->a %p\n", &head->name, &options->a);
+	printf("&head->path %p,	 &options->l %p\n", &head->path, &options->l);
+	printf("&head->mode %p,	 &options->r %p\n", &head->mode, &options->r);
+	*/
 	if (!options || !head)
 		perror("Error");
-	start = head;
 	head->next = NULL;
 	if (argc > 1)
 		ft_parse_args(argc, argv, options, &head);
 	else
 		ft_read_args(".", options, &head);
-
+	head = ft_sort_flist(options, head);
 	ft_print_flist(*options, head);
-	//ft_delete_flist(&head);
+	ft_delete_flist(head);
 	free(options);
-	system("leaks ft_ls");
+	//system("leaks ft_ls");
 	return (0);
 }
