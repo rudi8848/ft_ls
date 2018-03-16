@@ -1,11 +1,4 @@
-#include "includes/ft_printf.h"
-
-size_t	unicode_masks[BIT_MASKS] = {
-	0,									//"0xxx xxxx",
-	0xC080,			//49280,			//"110x xxxx    10xx xxxx",
-	0xE08080,		//14712960,			//"1110 xxxx    10xx xxxx    10xx xxxx",
-	0xF0808080		//4034953344		//"1111 0xxx    10xx xxxx    10xx xxxx    10xx xxxx"
-};
+#include "ft_printf.h"
 
 int	fillnchar(int len, int width, char c);
 static int check_type(char c, t_options *options);
@@ -65,173 +58,6 @@ ssize_t		ft_printf_putstr(char **fmt, va_list *args, t_options *options, int *re
 }
 
 
-int		write_two_bytes(size_t symb)
-{
-	int 			res;
-	unsigned char 	o2;
-	unsigned char 	o1;
-	unsigned char 	octet;
-
-	res = 0;
-	o2 = (symb << 26) >> 26;
-	o1 = ((symb >> 6) << 27) >> 27;
-	octet = (unicode_masks[TWO_B] >> 8) | o1;
-	write(1, &octet, 1);
-	res++;
-	octet = ((unicode_masks[TWO_B] << 24) >> 24) | o2;
-	write(1, &octet, 1);
-	res++;
-	return (res);
-}
-
-int		write_three_bytes(size_t symb)
-{
-	int 			res;
-	unsigned char 	o3;
-	unsigned char 	o2;
-	unsigned char 	o1;
-	unsigned char 	octet;
-
-	res = 0;
-	o3 = (symb << 26) >> 26;
-	o2 = ((symb >> 6) << 26) >> 26;
-	o1 = ((symb >> 12) << 28) >> 28;
-	octet = (unicode_masks[THREE_B] >> 16) | o1;
-	write(1, &octet, 1);
-	res++;
-	octet = ((unicode_masks[THREE_B] << 16) >> 24) | o2;
-	write(1, &octet, 1);
-	octet = ((unicode_masks[THREE_B] << 24) >> 24) | o3;
-	write(1, &octet, 1);
-	res++;
-	return (res);
-}
-
-int		write_four_bytes(size_t symb)
-{
-	int 			res;
-	unsigned char 	o4;
-	unsigned char 	o3;
-	unsigned char	o2;
-	unsigned char 	o1;
-	unsigned char 	octet;
-
-	res = 0;
-	o4 = (symb << 26) >> 26;
-	o3 = ((symb >> 6) << 26) >> 26;
-	o2 = ((symb >> 12) << 26) >> 26;
-	o1 = ((symb >> 18) << 29) >> 29;
-
-	octet = (unicode_masks[FOUR_B] >> 24) | o1;
-	write(1, &octet, 1);
-	res++;
-	octet = ((unicode_masks[FOUR_B] << 8) >> 24) | o2;
-	write(1, &octet, 1);
-	res++;
-	octet = ((unicode_masks[FOUR_B] << 16) >> 24) | o3;
-	write(1, &octet, 1);
-	res++;
-	octet = ((unicode_masks[FOUR_B] << 24) >> 24) | o4;
-	write(1, &octet, 1);
-	res++;
-	return (res);
-}
-
-/*
-int		ft_putwchar(wchar_t chr)
-
-	if (chr <= 0x7F)
-        ft_putchar(chr);
-
-    
-    else if (chr <= 0x7FF)
-    {
-        ft_putchar((chr >> 6) + 0xC0);
-        ft_putchar((chr & 0x3F) + 0x80);
-    }
-    else if (chr <= 0xFFFF)
-    {
-        ft_putchar((chr >> 12) + 0xE0);
-        ft_putchar(((chr >> 6) & 0x3F) + 0x80);
-        ft_putchar((chr & 0x3F) + 0x80);
-    }
-    else if (chr <= 0x10FFFF)
-    {
-        ft_putchar((chr >> 18) + 0xF0);
-        ft_putchar(((chr >> 12) & 0x3F) + 0x80);
-        ft_putchar(((chr >> 6) & 0x3F) + 0x80);
-        ft_putchar((chr & 0x3F) + 0x80);
-    }
-        	
-    
-    
-	else if (chr <= 0x7FF)
-		return write_two_bytes(chr);
-	else if (chr <= 0xFFFF)
-		return write_three_bytes(chr);
-	else if (chr <= 0x10FFFF)
-		return write_four_bytes(chr);
-	return (1);
-}
-*/
-
-int ft_nb_bits(wchar_t wc)
-{
- int i = 0;
- while (wc)
-  {
-    wc/=2;
-    i++;
-    }
-    return i;
-  }
-int ft_nb_bytes(unsigned int n)
-{
-  if (n <= 7)
-    return 1;
-    else if (n <= 11)
-    return 2;
-    else if (n <= 16)
-    return 3;
-    else
-    return 4;
-  }
-
-int   ft_putwchar(wchar_t wc)
-{
-    char    tmp[4];
-    int  	bits;
-    int		 bytes;
-
-    bits = ft_nb_bits(wc);
-    bytes = ft_nb_bytes(wc);
-
-    if (bytes <= bits && bytes <= MB_CUR_MAX)
-    {
-        if (bytes == 1)
-            tmp[0] = wc;
-        else
-        {
-            if (bytes == 2)
-                tmp[0] = ((wc & (0x1f << 6)) >> 6) | 0xC0;
-            else
-            {
-                if (bytes == 3)
-                    tmp[0] = ((wc >> 12) & 0xf) | 0xE0;
-                else
-                {
-                    tmp[0] = ((wc >> 18) & 7) | 0xF0;
-                    tmp[1] = ((wc >> 12) & 0x3f) | 0x80;
-                }
-                tmp[bytes - 2] = ((wc >> 6) & 0x3f) | 0x80;
-            }
-            tmp[bytes - 1] = (wc & 0x3f) | 0x80;
-        }
-        write(1, tmp, bytes);
-    }
-    return (bytes);
-}
-
 ssize_t		ft_printf_putchar(char **fmt, va_list *args, t_options *options, int *res)
 {
 	int symb;
@@ -244,18 +70,8 @@ ssize_t		ft_printf_putchar(char **fmt, va_list *args, t_options *options, int *r
 			ret += fillnchar(1, options->width, '0');
 		else
 			ret += fillnchar(1, options->width, ' ');
-	}
-	ptr = *fmt;
-	if (args)
-	{
-		symb = va_arg(*args, int);
-		if (*ptr == 'c' && !options->len_l)
-		{
 			ft_putchar(symb);
 			ret += 1;
-		}
-		else
-				ret += ft_putwchar(symb);
 	}
 	else
 	{
@@ -267,19 +83,6 @@ ssize_t		ft_printf_putchar(char **fmt, va_list *args, t_options *options, int *r
 	*res += ret;
 	return (ret);
 }
-//int		print_wstr(int *wstr);
-
-
-/*
-**----------------------------------------------------------------------------------------------------------
-*/
-
-
-
-/*
-**------------------------------------- NUMBER CONVERSIONS ------------------------------------------------
-*/
-
 
 uintmax_t	ft_cut_unsigned(va_list *args, t_options *options)
 {
@@ -843,53 +646,7 @@ ssize_t	ft_printf_putnbr_udec(char **fmt, va_list *args, t_options *options, int
 }
 */
 
-/*
-**----------------------------------------------------------------------------------------------------------
-*/
 
-size_t		ft_wstrlen(wchar_t *wstr)
-{
-	size_t len = 0;
-
-	while (wstr[len] != L'\0')
-		len++;
-	return (len);
-}
-
-ssize_t	print_wstr(char **fmt, va_list *args, t_options *options, int *res)
-{
-	/*
-	if (fmt && args && options && res)
-	return 1;
-else
-	return 0;
-	*/
-	size_t i;
-	wchar_t *wstr = NULL;
-	int ret = 0;
-
-	i = 0;
-	if (!fmt || !options)
-		exit(ERROR);
-	wstr = (wchar_t *)va_arg(*args, wchar_t*);
-	if (!wstr)
-	{
-		ft_print_null_string();
-		*res += 6;
-		return (6);
-	}
-	while (wstr[i] != L'\0')
-	{
-		ret += ft_putwchar(wstr[i]);
-		i++;
-	}
-		*res += ret;
-	return (ret);
-}
-
-/*
-**----------------------------------------------------------------------------------------------------------
-*/
 
 int		ft_parse_flags(char *fp, t_options *options)
 {
@@ -1052,11 +809,11 @@ void	ft_set_array(t_pf *convert_functions)
 	//convert_functions[CONV_b] = &ft_printf_putnbr_bin;
 	//convert_functions[CONV_f] = &ft_prinft_putnbr_float;
 	//convert_functions[CONV_F] = &ft_prinft_putnbr_float;
-	convert_functions[CONV_C] = &ft_printf_putchar;
-	convert_functions[CONV_S] = &print_wstr;
+	//convert_functions[CONV_C] = &ft_printf_putchar;
+	//convert_functions[CONV_S] = &print_wstr;
 }
 
-t_pf	ft_choose_type(e_conv conv/*, t_options *options*/)
+t_pf	ft_choose_type(t_conv conv/*, t_options *options*/)
 {
 	static t_pf *convert_functions;
 

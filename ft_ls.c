@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-#include "libftprintf/includes/libft.h"
-#include "libftprintf/includes/ft_printf.h"
+#include "libft/includes/libft.h"
+#include "ft_printf.h"
 #include <errno.h>
 
 #define RESET	"\033[0m"

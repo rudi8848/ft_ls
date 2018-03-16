@@ -1,7 +1,7 @@
 NAME = ft_ls
 OBJ = $(SRC:.c=.o)
-SRC = ft_ls.c
-LIB = libftprintf/libftprintf.a
+SRC = ft_ls.c ft_printf.c
+LIB = libft/libft.a
 
 all: $(NAME)
 
@@ -12,14 +12,14 @@ $(OBJ): $(SRC) $(LIB)
 	gcc -c -g3 $(SRC)
 
 $(LIB):
-	make -C libftprintf
+	make -C libft
 
 clean:
 	/bin/rm -f $(OBJ)
-	make clean -C libftprintf
+	make clean -C libft
 
 fclean: clean
 	@/bin/rm -f $(NAME)
-	make fclean -C libftprintf
+	make fclean -C libft
 
 re: fclean all

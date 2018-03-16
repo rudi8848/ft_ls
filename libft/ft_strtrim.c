@@ -24,18 +24,18 @@ char			*ft_strtrim(char const *s)
 	char		*dest;
 	size_t		start;
 	size_t		i;
-//	size_t		j;
+	size_t		len;
 
 	start = 0;
 	i = 0;
-//	j = 0;
+	len = ft_strlen(s);
 	if (s)
 	{
 		while (ft_isaspace(s[i]))
 			i++;
 		start = i;
-		if (i > 0 || (i == 0 && ft_strlen(s) > 0))
-			i = ft_strlen(s) - 1;
+		if (i > 0 || (i == 0 && len > 0))
+			i = len - 1;
 		while (ft_isaspace(s[i]) && i > 0)
 			i--;
 		if (start >= i)
