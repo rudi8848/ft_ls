@@ -13,7 +13,9 @@
 #define RESET	"\033[0m"
 #define BOLD	"\033[1m"
 #define RED 	"\033[1;31m"
+#define GREEN 	"\033[0;32m"
 #define YELLOW	"\033[1;33m"
+#define MAGENTA	"\033[0;35m"
 #define CYAN	"\033[1;36m"
 #define WHITE	"\033[1;37m"
 
@@ -63,6 +65,7 @@ typedef struct		s_flist
 	char			*day;
 	char			*month;
 	char			*time;
+	char			*color;
 	time_t			mtime;
 	struct s_flist	*next;
 }					t_flist;
@@ -78,7 +81,7 @@ void	print_recursion(char *path, t_opt options);
 void		ft_clean_flist(t_flist *file);
 t_flist		*ft_sort_flist(t_opt *options, t_flist *head);
 t_flist		*ft_sort_by_name(t_flist *head);
-t_flist		*ft_reverse_sort_by_name(t_flist *head);
+t_flist		*ft_reverse_sort(t_flist *head);
 t_flist		*ft_sort_by_mtime(t_flist *head);
 
 void		ft_print_flist(t_opt options, t_flist *head)
@@ -93,12 +96,12 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	while (head/*->next*/)
 	{
 		if (options.l)
-			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %-8s\n",
+			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
 		head->mode, head->nlink, head->user, head->group,
-				head->size, head->month, head->day, head->time,
-				head->name);
+				head->size, head->month, head->day, head->time, head->color,
+				head->name, RESET);
 		else
-			printf("%-15s\n", head->name);
+			printf("%s%-15s%s\n", head->color, head->name, RESET);
 		head = head->next;
 		
 	}
@@ -308,19 +311,14 @@ void		ft_read_link(char *name, char *path, t_flist *head)
 
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
-	char		*tmpname;
-
 	ft_push_fname(head, path);
-	/*if (buf.st_mode & S_IFDIR)
-	{
-		if (!(((*head)->name[0]) == '.'))
-		{
-			tmpname = ft_strjoin(CYAN, (*head)->name);
-			free((*head)->name);
-			(*head)->name = ft_strjoin(tmpname, RESET);
-			free(tmpname);
-		}
-	}*/
+	if (buf.st_mode & S_IFDIR)
+		(*head)->color = CYAN;
+	else if (S_ISLNK(buf.st_mode))
+		(*head)->color = MAGENTA;
+	else if (buf.st_mode & S_IFREG && buf.st_mode & S_IXUSR)
+		(*head)->color = GREEN;
+	else (*head)->color = "";
 	if (options.l)
 	{
 		ft_get_mode(buf, head);
@@ -469,45 +467,15 @@ t_flist			*ft_sort_flist(t_opt *options, t_flist *head)
 	if (!options->r && !options->t)
 		head = ft_sort_by_name(head);
 	else if (options->r)
-		head = ft_reverse_sort_by_name(head);
+		head = ft_reverse_sort(head);
 	else if (options->t)
 		head = ft_sort_by_mtime(head);
 	return (head);
 }
 
-t_flist 		*ft_reverse_sort_by_name(t_flist *head)
+t_flist 		*ft_reverse_sort(t_flist *head)
 {
-	t_flist *a = NULL;
-
-    while ( head != NULL )
-    {
-        t_flist *b;
-
-        if(head->next)
-        	b = head;
-        else
-        	return a;
-        head = head->next;
-
-        if ( a == NULL || (strcmp(b->name, a->name) > 0) )
-        {
-            b->next = a;
-            a = b;
-        }
-        else
-        {
-            t_flist *c;
-            c = a;
-            while ( c->next != NULL && !(strcmp(b->name, c->next->name) > 0) )
-            {                   
-                  c = c->next;
-            }                
-
-            b->next = c->next;
-            c->next = b;
-        }
-    }
-    return a;
+	return (NULL);
 }
 
 t_flist 		*ft_sort_by_mtime(t_flist *head)

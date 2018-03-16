@@ -107,7 +107,7 @@ t_flist *sort(t_flist *head)			// функция возвращает загол
 }*/
 
 //------------------------------------------------------------
-t_flist *sort( t_flist *root )
+t_flist *sort_by_name( t_flist *root )
 {
 	printf("-----------%s--------------\n",__FUNCTION__ );
     t_flist *a = NULL;
