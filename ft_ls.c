@@ -92,6 +92,7 @@ void		ft_clean_flist(t_flist *file);
 t_flist		*ft_sort_flist(t_opt *options, t_flist *head);
 t_flist		*ft_sort_by_name(t_flist *head, pfCompare cmp);
 t_flist		*ft_sort_by_mtime(t_flist *head, pfCompare cmp);
+void		ft_delete_flist(t_flist **head);
 
 int			ft_cmp_ascending(int a, int b)
 {
@@ -112,7 +113,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	phead = head;
 	total = ft_flist_count(head);
 	ft_printf("total %d\n", total);
-	while (head/*->next*/)
+	while (head)
 	{
 		if (options.l)
 			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
@@ -121,12 +122,13 @@ void		ft_print_flist(t_opt options, t_flist *head)
 				head->name, RESET);
 		else
 			printf("%s%-15s%s\n", head->color, head->name, RESET);
+		ft_clean_flist(head);
 		head = head->next;
 		
 	}
 	if (options.rr)
 		{
-			while (phead/*->next*/)
+			while (phead)
 			{
 				struct stat buf;
 				stat(phead->path, &buf);
@@ -150,7 +152,7 @@ void	print_recursion(char *path, t_opt options)
 	}
 	ft_read_dir(path, &options, &new_head);
 	ft_print_flist(options, new_head);
-	ft_clean_flist(new_head);
+	ft_delete_flist(&new_head);
 
 }
 
@@ -168,10 +170,12 @@ void		ft_clean_flist(t_flist *file)
 
 void		ft_delete_flist(t_flist **head)
 {
+	printf("-------------%s\n",__FUNCTION__ );
 	t_flist 	*tmp;
 
 	while ((*head)->next)
 	{
+		printf("---------%s -- %s\n", __FUNCTION__, tmp->name);
 		tmp = (*head);
 		*head = (*head)->next;
 		ft_clean_flist(tmp);
@@ -179,7 +183,9 @@ void		ft_delete_flist(t_flist **head)
 	}
 	ft_clean_flist(*head);
 	free(*head);
+	(*head) = NULL;
 }
+
 
 int			ft_flist_count(t_flist *head)
 {
@@ -188,7 +194,7 @@ int			ft_flist_count(t_flist *head)
 	i = 0;
 	if (!head)
 		return (0);
-	while (head->next)
+	while (head)
 	{
 		head = head->next;
 		i++;
@@ -281,7 +287,6 @@ void		ft_get_links(struct stat buf, t_flist **file)
 
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
-	//struct stat buf;
 	ft_push_fname(head, path);
 	if (buf.st_mode & S_IFDIR)
 		(*head)->color = CYAN;
@@ -307,7 +312,7 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 {
 	struct dirent 	*info = NULL;
-	struct stat 	buf = {0};
+	struct stat 	buf;
 	DIR				*dirp = NULL;
 	char			*path;
 	char			*prefix;
@@ -326,11 +331,8 @@ void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 			perror("cannot read");
 			continue;
 		}
-		if (! options->a)
-		{
-			if (ft_strequ(info->d_name, ".") || ft_strequ(info->d_name, "..") || (*info).d_name[0] == '.')
+		if (!options->a && ((*info).d_name[0] == '.'))
 		 		continue;
-		}
 		prefix = ft_strjoin(name, "/");
 		path = ft_strjoin(prefix, info->d_name);
 		if (info->d_type &DT_LNK)
@@ -338,13 +340,7 @@ void		ft_read_dir(char *name, t_opt *options, t_flist **head)
 			lstat(path, &buf);
 			ft_read_file(path, *options, buf,head);
 		}
-		else if (info->d_type & DT_REG)
-		{
-			stat(path, &buf);
-			ft_read_file(path, *options, buf, head);
-			
-		}
-		else if (info->d_type & DT_DIR)
+		else if (info->d_type & DT_REG || info->d_type & DT_DIR)
 		{
 			stat(path, &buf);
 			ft_read_file(path, *options, buf, head);
@@ -424,7 +420,6 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 				}
 				argv[i]++;
 			}
-	//		i++;
 	}
 	else
 	{
@@ -518,21 +513,23 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
 int			main(int argc, char **argv)
 {
 	t_flist		*head;
+	t_flist		*start;
 	t_opt		*options;
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
 		perror("Error");
+	start = head;
 	head->next = NULL;
 	if (argc > 1)
 		ft_parse_args(argc, argv, options, &head);
 	else
 		ft_read_args(".", options, &head);
-	
+
 	ft_print_flist(*options, head);
-	ft_delete_flist(&head);
+	//ft_delete_flist(&head);
 	free(options);
-	//system("leaks ft_ls");
+	system("leaks ft_ls");
 	return (0);
 }

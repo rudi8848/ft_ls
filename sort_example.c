@@ -27,13 +27,13 @@ struct list * insert( struct list *node, char* data )
             tmp->next = NULL;
         }
     }
- printf("\n%s-------------------> %p %s %p \n",__FUNCTION__, &node, data, &node->next);
+ //printf("\n%s-------------------> %p %s %p \n",__FUNCTION__, &node, data, &node->next);
     return tmp;
 }
 
 void display( struct list *node )
 {
-    for ( ; node != NULL; node = node->next ) printf("\n%s-------------------> %p %s\n",__FUNCTION__, &node, node->data);//printf( "%s ", node->data );
+    for ( ; node != NULL; node = node->next ) printf("\n%s\n", node->data);//printf( "%s ", node->data );
 }
 
 struct list * clear( struct list *node )
@@ -42,7 +42,7 @@ struct list * clear( struct list *node )
     {
         struct list *tmp = node;
         node = node->next;
-
+        free(tmp->data);
         free( tmp );
     }
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     struct list *root = NULL;
     struct list **tmp = &root;
 
-    printf("\n%s--------------> %p %p\n",__FUNCTION__, &tmp, &root );
+    //printf("\n%s--------------> %p %p\n",__FUNCTION__, &tmp, &root );
     for ( size_t i = 1; i < argc; i++ )
     {
         *tmp = insert( *tmp, argv[i] );
@@ -98,9 +98,10 @@ int main(int argc, char **argv)
     printf( "\n" );
 
     root = sort( root );
-printf("\n %s ---------------> %p %p %p\n", __FUNCTION__, &root, &root->next, &root->next->next );
+//printf("\n %s ---------------> %p %p %p\n", __FUNCTION__, &root, &root->next, &root->next->next );
     display( root );
     printf( "\n" );
 
     root = clear( root );
+    system("leaks a.out");
 }   
