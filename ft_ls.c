@@ -115,12 +115,12 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	while (head)
 	{
 		if (options.l)
-			printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
+			ft_printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
 		head->mode, head->nlink, head->user, head->group,
 				head->size, head->month, head->day, head->time, head->color,
 				head->name, RESET);
 		else
-			printf("%s%-15s%s\n", head->color, head->name, RESET);
+			ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 		head = head->next;
 	}
 	if (options.rr)
@@ -464,48 +464,63 @@ int		ft_read_args(char *name, t_opt *options, t_flist **head)
 		return (0);
 }
 
-int		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
+t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 {
-	int			i;
-	int			f = 0;
-	int res = 0;
+	int i = 1;
+	char *ptr;
 
-	i = 1;
 	while (i < argc)
 	{
 		if (*argv[i] == '-')
 		{
-			++argv[i];
-			while (*argv[i] && ft_isalnum(*argv[i]))
+			ptr = argv[i];
+			++ptr;
+			while (*ptr && ft_isalnum(*ptr))
 			{
-				if (*argv[i] == 'a' || *argv[i] == 'l' || *argv[i] == 'R'
-					|| *argv[i] == 'r' || *argv[i] == 't')
+				if (*ptr == 'a' || *ptr == 'l' || *ptr == 'R'
+					|| *ptr == 'r' || *ptr == 't')
 				{
-					if (*argv[i] == 'a')
+					if (*ptr == 'a')
 						options->a = 1;
-					if (*argv[i] == 'l')
+					if (*ptr == 'l')
 						options->l = 1;
-					if (*argv[i] == 'R')
+					if (*ptr == 'R')
 						options->rr = 1;
-					if (*argv[i] == 'r')
+					if (*ptr == 'r')
 						options->r = 1;
-					if (*argv[i] == 't')
+					if (*ptr == 't')
 						options->t = 1;
 				}
 				else
 				{
-					ft_printf("illegal option '%c'\n", *argv[i]);
+					ft_printf("illegal option '%c'\n", *ptr);
 					exit (1);
 				}
-				argv[i]++;
+				ptr++;
 			}
+		}
+			i++;
 	}
-	else
+	return (options);
+}
+
+int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
+{
+	int			i;
+	int			f = 0;
+	int res = 0;
+	char ***ptr = &argv;
+	i = 1;
+
+	options = ft_read_options(argc, *ptr, options);
+	while (i < argc)
 	{
-		res = ft_read_args(argv[i], options, head);
-		f++;
-	}
-	i++;
+		if (argv[i] && argv[i][0] != '-')
+		{
+			res = ft_read_args(argv[i], options, head);
+			f++;
+		}
+			i++;
 	}
 	if (!f)
 		res = ft_read_args(".", options, head);
@@ -520,12 +535,12 @@ int			main(int argc, char **argv)
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
-	
+	/*
 	printf("&head %p,	 &options %p\n", &head, &options);
 	printf("&head->name %p,	 &options->a %p\n", &head->name, &options->a);
 	printf("&head->path %p,	 &options->l %p\n", &head->path, &options->l);
 	printf("&head->mode %p,	 &options->r %p\n", &head->mode, &options->r);
-	
+	*/
 	if (!options || !head)
 		perror("Error");
 	head->next = NULL;
@@ -540,6 +555,6 @@ int			main(int argc, char **argv)
 	}
 	ft_delete_flist(head);
 	free(options);
-	system("leaks ft_ls");
+	//system("leaks ft_ls");
 	return (0);
 }
