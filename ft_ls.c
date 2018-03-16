@@ -70,6 +70,16 @@ typedef struct		s_flist
 	struct s_flist	*next;
 }					t_flist;
 
+typedef int (*pfCompare)(int, int);
+
+typedef enum
+{
+	SO_ASC,
+	SO_DESC,
+	SORT_ORDERS
+} e_sort_order;
+
+
 void		ft_read_args(char *name, t_opt *options, t_flist **head);
 void		ft_get_time(struct stat buf, t_flist **head);
 //void		ft_read_file();
@@ -80,9 +90,18 @@ void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt *options, t_flist **head);
 void	print_recursion(char *path, t_opt options);
 void		ft_clean_flist(t_flist *file);
 t_flist		*ft_sort_flist(t_opt *options, t_flist *head);
-t_flist		*ft_sort_by_name(t_flist *head);
-t_flist		*ft_reverse_sort(t_flist *head);
-t_flist		*ft_sort_by_mtime(t_flist *head);
+t_flist		*ft_sort_by_name(t_flist *head, pfCompare cmp);
+t_flist		*ft_sort_by_mtime(t_flist *head, pfCompare cmp);
+
+int			ft_cmp_ascending(int a, int b)
+{
+	return (a >= b);
+}
+
+int			ft_cmp_descending(int a, int b)
+{
+	return (a < b);
+}
 
 void		ft_print_flist(t_opt options, t_flist *head)
 {
@@ -203,33 +222,6 @@ void		ft_push_fname(t_flist **head, char *path)
 	tmp->next = (*head);
 	(*head) = tmp;
 }
-/*
-t_flist		*ft_get_last(t_flist *head)
-{			
-	if (head == NULL)
-		return (NULL);
-	while (head->next)
-		head = head->next;							
-	return head;
-}
-
-void		ft_push_back_fname(t_flist *head, char *name)
-{
-	t_flist	*last;
-	t_flist	*tmp;
-
-	last = ft_get_last(head);
-	tmp = (t_flist*)malloc(sizeof(t_flist));
-	if (!tmp)
-	{
-		perror(__FUNCTION__);
-		exit(1);
-	}
-	tmp->name = name;
-	tmp->next = NULL;
-	last->next = tmp;
-}
-*/
 
 void		ft_get_size(struct stat buf, t_flist **file)
 {
@@ -287,30 +279,9 @@ void		ft_get_links(struct stat buf, t_flist **file)
 	(*file)->nlink = buf.st_nlink;
 }
 
-void		ft_read_link(char *name, char *path, t_flist *head)
-{
-		;
-}
-
-/*void		ft_color_hidden(t_flist *head)
-{
-	char	*tmp1;
-	char	*tmp2;
-
-	tmp1 = ft_strdup(head->name + 1);	//name
-	free(head->name);					//null
-	tmp2 = ft_strjoin(".", CYAN);			//.CYAN
-	head->name = ft_strjoin(tmp2, tmp1);//.CYANname
-	free(tmp1);
-	free(tmp2);
-	tmp1 = ft_strjoin(head->name, RESET);
-	free(head->name);
-	head->name = ft_strdup(tmp1);
-	free(tmp1);
-}*/
-
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
+	//struct stat buf;
 	ft_push_fname(head, path);
 	if (buf.st_mode & S_IFDIR)
 		(*head)->color = CYAN;
@@ -321,6 +292,10 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 	else (*head)->color = "";
 	if (options.l)
 	{
+		if (S_ISLNK(buf.st_mode))
+		{
+			;
+		}
 		ft_get_mode(buf, head);
 		ft_get_user_group(buf, head);
 		ft_get_time(buf, head);
@@ -464,59 +439,82 @@ void		ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 
 t_flist			*ft_sort_flist(t_opt *options, t_flist *head)
 {
+	pfCompare	cmp[SORT_ORDERS];
+
+	cmp[SO_ASC] = ft_cmp_ascending;
+	cmp[SO_DESC] = ft_cmp_descending;
+
 	if (!options->r && !options->t)
-		head = ft_sort_by_name(head);
-	else if (options->r)
-		head = ft_reverse_sort(head);
-	else if (options->t)
-		head = ft_sort_by_mtime(head);
+		head = ft_sort_by_name(head, cmp[SO_ASC]);
+	else if (options->r && !options->t)
+		head = ft_sort_by_name(head, cmp[SO_DESC]);
+	else if (options->t && !options->r)
+		head = ft_sort_by_mtime(head, cmp[SO_ASC]);
+	else if (options->t && options->r)
+		head = ft_sort_by_mtime(head, cmp[SO_DESC]);
 	return (head);
 }
 
-t_flist 		*ft_reverse_sort(t_flist *head)
+t_flist 		*ft_sort_by_mtime(t_flist *head, pfCompare cmp)
 {
-	return (NULL);
-}
-
-t_flist 		*ft_sort_by_mtime(t_flist *head)
-{
-	return (NULL);
-}
-
-t_flist 		*ft_sort_by_name(t_flist *head)
-{
-    t_flist *a = NULL;
-
-    while ( head != NULL )
-    {
-        t_flist *b;
-
+	t_flist *a = NULL;
+	t_flist *b;
+	t_flist *c;
+    
+    while (head != NULL )
+    {  
         if(head->next)
         	b = head;
         else
-        	return a;
+        	return (a);
         head = head->next;
-
-        if ( a == NULL || (strcmp(b->name, a->name) < 0) )
+        if (a == NULL || cmp(b->mtime, a->mtime))
         {
             b->next = a;
             a = b;
         }
         else
         {
-            t_flist *c;
             c = a;
-            while ( c->next != NULL && !(strcmp(b->name, c->next->name) < 0) )
-            {                   
+            while (c->next != NULL && !cmp(b->mtime, c->next->mtime))  
                   c = c->next;
-            }                
-
             b->next = c->next;
             c->next = b;
         }
     }
-    return a;
+    return (a);
 }
+
+t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
+{
+    t_flist *a = NULL;
+	t_flist *b;
+	t_flist *c;
+    
+    while (head != NULL )
+    {  
+        if(head->next)
+        	b = head;
+        else
+        	return (a);
+        head = head->next;
+        if (a == NULL || cmp(0, strcmp(b->name, a->name)))
+        {
+            b->next = a;
+            a = b;
+        }
+        else
+        {
+            c = a;
+            while (c->next != NULL && !cmp(0, strcmp(b->name, c->next->name)))  
+                  c = c->next;
+            b->next = c->next;
+            c->next = b;
+        }
+    }
+    return (a);
+}
+
 int			main(int argc, char **argv)
 {
 	t_flist		*head;
