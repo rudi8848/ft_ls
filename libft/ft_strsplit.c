@@ -65,7 +65,7 @@ char				**ft_strsplit(char const *s, char c)
 			counter++;
 			i++;
 		}
-		arr[i++] = NULL;
+		arr[i] = NULL;
 		return (arr);
 	}
 	return (NULL);

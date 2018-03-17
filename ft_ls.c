@@ -186,10 +186,26 @@ int			ft_flist_count(t_flist *head)
 	return (i);
 }
 
+char 	*cut_name(char *str)
+{
+	int len;
+	int start;
+	char *dest;
+
+	len = ft_strlen(str);
+	start = len;
+	while (str[start] != '/')
+		start--;
+	start++;
+	dest = ft_strsub(str, start, len - start);
+	return (dest);
+}
+
 void		ft_push_fname(t_flist **head, char *path)
 {
-	t_flist *tmp;
-	char **arr_name;
+	static int first = 0;
+	t_flist *tmp = NULL;
+
 	int i = 0;
 
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
@@ -199,18 +215,12 @@ void		ft_push_fname(t_flist **head, char *path)
 		exit(1);
 	}
 	tmp->path = ft_strdup(path);
-	arr_name = ft_strsplit(path, '/');
-	while (arr_name[i] != NULL)
-		i++;
-	tmp->name = ft_strdup(arr_name[i - 1]);
-	while (i)
-	{
-		free(arr_name[i]);
-		i--;
-	}
-	free(*arr_name);
+	tmp->name = cut_name(path);
 	tmp->next = (*head);
+	if (first == 0)
+		free(*head);
 	(*head) = tmp;
+	first++;
 }
 
 void		ft_get_size(struct stat buf, t_flist **file)
@@ -319,16 +329,8 @@ void		ft_read_dir(char *name, t_opt options, t_flist **head)
 		 		continue;
 		prefix = ft_strjoin(name, "/");
 		path = ft_strjoin(prefix, info->d_name);
-		if (info->d_type &DT_LNK)
-		{
-			lstat(path, &buf);
-			ft_read_file(path, options, buf,head);
-		}
-		else if (info->d_type & DT_REG || info->d_type & DT_DIR)
-		{
-			stat(path, &buf);
-			ft_read_file(path, options, buf, head);
-		}
+		lstat(path, &buf);
+		ft_read_file(path, options, buf,head);
 		free(prefix);
 		free(path);
 	}
@@ -536,6 +538,6 @@ int			main(int argc, char **argv)
 	ft_flist_count(head);
 	ft_delete_flist(&head);
 	free(options);
-	//system("leaks ft_ls");
+	system("leaks ft_ls");
 	return (0);
 }
