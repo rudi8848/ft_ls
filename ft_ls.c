@@ -100,12 +100,12 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	while (head)
 	{
 		if (options.l)
-			ft_printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
+		printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
 		head->mode, head->nlink, head->user, head->group,
 				head->size, head->month, head->day, head->time, head->color,
 				head->name, RESET);
 		else
-			ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
+			printf("%s%-15s%s\n", head->color, head->name, RESET);
 		head = head->next;
 	}
 	if (options.rr)
@@ -203,7 +203,7 @@ char 	*cut_name(char *str)
 
 void		ft_push_fname(t_flist **head, char *path)
 {
-	static int first = 0;
+//	static int first = 0;
 	t_flist *tmp = NULL;
 
 	int i = 0;
@@ -217,10 +217,10 @@ void		ft_push_fname(t_flist **head, char *path)
 	tmp->path = ft_strdup(path);
 	tmp->name = cut_name(path);
 	tmp->next = (*head);
-	if (first == 0)
-		free(*head);
+//	if (first == 0)
+//		free(*head);
 	(*head) = tmp;
-	first++;
+//	first++;
 }
 
 void		ft_get_size(struct stat buf, t_flist **file)
@@ -234,7 +234,7 @@ void		ft_get_time(struct stat buf, t_flist **file)
 	int		i;
 
 	i = T_DOW;
-	(*file)->mtime = buf.st_mtime;
+//	(*file)->mtime = buf.st_mtime;
 	date = ft_strsplit(ctime(&buf.st_mtime), ' ');
 	if (!date)
 	{
@@ -249,6 +249,7 @@ void		ft_get_time(struct stat buf, t_flist **file)
 		free(date[i]);
 		i++;
 	}
+	free(date);
 }
 
 void		ft_get_mode(struct stat buf, t_flist **file)
@@ -282,6 +283,7 @@ void		ft_get_links(struct stat buf, t_flist **file)
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
 	ft_push_fname(head, path);
+	(*head)->mtime = buf.st_mtime;
 	if (buf.st_mode & S_IFDIR)
 		(*head)->color = CYAN;
 	else if (S_ISLNK(buf.st_mode))
@@ -410,7 +412,7 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
         else
         	return (a);
         head = head->next;
-        if (a == NULL || cmp(0, strcmp(b->name, a->name)))
+        if (a == NULL || cmp(0, ft_strcmp(b->name, a->name)))
         {
             b->next = a;
             a = b;
@@ -418,7 +420,7 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
         else
         {
             c = a;
-            while (c->next != NULL && !cmp(0, strcmp(b->name, c->next->name)))  
+            while (c->next != NULL && !cmp(0, ft_strcmp(b->name, c->next->name)))  
                   c = c->next;
             b->next = c->next;
             c->next = b;
@@ -429,7 +431,7 @@ t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
 
 int		ft_read_args(char *name, t_opt options, t_flist **head)
 {
-	int				ret;
+	int			ret;
 	struct stat		buf;
 
 	ret = stat(name, &buf);
@@ -525,7 +527,6 @@ int			main(int argc, char **argv)
 	if (!options || !head)
 		perror("Error");
 	head->next = NULL;
-	//head->name = "";
 	if (argc > 1)
 		res = ft_parse_args(argc, argv, options, &head);
 	else
@@ -538,6 +539,6 @@ int			main(int argc, char **argv)
 	ft_flist_count(head);
 	ft_delete_flist(&head);
 	free(options);
-	system("leaks ft_ls");
+//	system("leaks ft_ls");
 	return (0);
 }
