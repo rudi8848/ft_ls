@@ -28,16 +28,6 @@ typedef	struct	s_opt
 	int			t;
 }				t_opt;
 
-typedef enum
-{
-	T_DOW,
-	T_MONTH,
-	T_DAY,
-	T_TIME,
-	T_YEAR,
-	T_END
-}	e_time;
-
 typedef struct		s_flist
 {
 	char			*name;
@@ -100,7 +90,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	while (head)
 	{
 		if (options.l)
-		printf("%5s %3hi %5s %5s %5ld %4s %3s %-5.5s %s%-8s%s\n",
+		printf("%5s %3hi %5s %5s %10ld %4s %3s %-5.5s %s%-8s%s\n",
 		head->mode, head->nlink, head->user, head->group,
 				head->size, head->month, head->day, head->time, head->color,
 				head->name, RESET);
@@ -136,7 +126,7 @@ void	print_recursion(char *path, t_opt options)
 	new_head = ft_sort_flist(options, new_head);
 	ft_print_flist(options, new_head);
 	ft_delete_flist(&new_head);
-
+	free(new_head);
 }
 
 void		ft_clean_flist(t_flist **file)
@@ -162,12 +152,10 @@ void		ft_delete_flist(t_flist **head)
 		ft_clean_flist(&tmp);
 		free(tmp);
 	}
-	if ((*head))
-	{
-		ft_clean_flist(head);
-		free((*head));
-	}
-	(*head) = NULL;
+//	if (*head)
+//	ft_clean_flist(head);
+//	free(head);
+//	(*head) = NULL;
 }
 
 
@@ -230,26 +218,18 @@ void		ft_get_size(struct stat buf, t_flist **file)
 
 void		ft_get_time(struct stat buf, t_flist **file)
 {
-	char	**date;
+	char	*date;
 	int		i;
 
-	i = T_DOW;
-//	(*file)->mtime = buf.st_mtime;
-	date = ft_strsplit(ctime(&buf.st_mtime), ' ');
+	date = ctime(&buf.st_mtime);
 	if (!date)
 	{
 		perror(__FUNCTION__);
 		exit (1);
 	}
-	(*file)->day = ft_strdup(date[T_DAY]);
-	(*file)->month = ft_strdup(date[T_MONTH]);
-	(*file)->time = ft_strdup(date[T_TIME]);
-	while (i < T_END)
-	{
-		free(date[i]);
-		i++;
-	}
-	free(date);
+	(*file)->day = ft_strsub(date, 8, 2);
+	(*file)->month = ft_strsub(date, 4, 3);
+	(*file)->time = ft_strsub(date, 11, 5);
 }
 
 void		ft_get_mode(struct stat buf, t_flist **file)
@@ -538,6 +518,7 @@ int			main(int argc, char **argv)
 	}
 	ft_flist_count(head);
 	ft_delete_flist(&head);
+	free(head);
 	free(options);
 //	system("leaks ft_ls");
 	return (0);
