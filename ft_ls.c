@@ -115,7 +115,7 @@ void	print_recursion(char *path, t_opt options)
 {
 	printf("\n--------------%s-----------\n%s\n", __FUNCTION__, path);
 	t_flist		*new_head;
-	t_flist		**ptr;
+	t_flist		*ptr;
 
 	new_head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (! new_head)
@@ -123,13 +123,12 @@ void	print_recursion(char *path, t_opt options)
 		perror(__FUNCTION__);
 		exit(1);
 	}
-	ptr = &new_head;
+	ptr = new_head;
 	ft_read_dir(path, options, &new_head);
 	new_head = ft_sort_flist(options, new_head);
 	ft_print_flist(options, new_head);
 	ft_delete_flist(&new_head);
-	//free(new_head);
-	free(*ptr);
+	free(ptr);
 }
 
 void		ft_clean_flist(t_flist **file)
@@ -506,14 +505,14 @@ int			main(int argc, char **argv)
 	t_flist		*head = NULL;
 	t_opt		*options;
 	int			res;
-	t_flist		**ptr;
+	t_flist		*ptr;
 
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
 		perror("Error");
 	head->next = NULL;
-	ptr = &head;
+	ptr = head;
 	if (argc > 1)
 		res = ft_parse_args(argc, argv, options, &head);
 	else
@@ -525,9 +524,8 @@ int			main(int argc, char **argv)
 	}
 	ft_flist_count(head);
 	ft_delete_flist(&head);
-	//free(head);
 	free(options);
-	free(*ptr);
+	free(ptr);
 	system("leaks ft_ls");
 	return (0);
 }
