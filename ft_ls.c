@@ -200,7 +200,7 @@ char 	*cut_name(char *str)
 
 	len = ft_strlen(str);
 	start = len;
-	while (str[start] != '/')
+	while (start >= 0 && str[start] != '/')
 		start--;
 	start++;
 	dest = ft_strsub(str, start, len - start);
