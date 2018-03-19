@@ -37,6 +37,7 @@ typedef struct		s_flist
 	char			*user;
 	char			*group;
 	long			size;
+	long			blocks;
 	char			*day;
 	char			*month;
 	char			*time;
@@ -68,6 +69,7 @@ t_flist		*ft_sort_flist(t_opt options, t_flist *head);
 t_flist		*ft_sort_by_name(t_flist *head, pfCompare cmp);
 t_flist		*ft_sort_by_mtime(t_flist *head, pfCompare cmp);
 void		ft_delete_flist(t_flist **head);
+long	ft_count_blocks(t_flist *head);
 
 int			ft_cmp_ascending(int a, int b)
 {
@@ -85,17 +87,18 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	t_flist *phead;
 
 	phead = head;
-	//total = ft_flist_count(head);
-	//ft_printf("total %d\n", total);
+	total = ft_count_blocks(head);
+	if (options.l)
+		ft_printf("total %d\n", total);
 	while (head)
 	{
 		if (options.l)
-		printf("%5s %3hi %5s %5s %10ld %4s %3s %-5.5s %s%-8s%s\n",
+		ft_printf("%-11s%4hi %5s %5s%7ld%4s%3s %-6s%s%s%s\n",
 		head->mode, head->nlink, head->user, head->group,
 				head->size, head->month, head->day, head->time, head->color,
 				head->name, RESET);
 		else
-			printf("%s%-15s%s\n", head->color, head->name, RESET);
+			ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 		head = head->next;
 	}
 	if (options.rr)
@@ -113,7 +116,7 @@ void		ft_print_flist(t_opt options, t_flist *head)
 
 void	print_recursion(char *path, t_opt options)
 {
-	printf("\n--------------%s-----------\n%s\n", __FUNCTION__, path);
+	ft_printf("\n--------------%s-----------\n%s\n", __FUNCTION__, path);
 	t_flist		*new_head;
 	t_flist		*ptr;
 
@@ -129,6 +132,19 @@ void	print_recursion(char *path, t_opt options)
 	ft_print_flist(options, new_head);
 	ft_delete_flist(&new_head);
 	free(ptr);
+}
+
+long	ft_count_blocks(t_flist *head)
+{
+	long	total;
+
+	total = 0;
+	while (head)
+	{
+		total += head->blocks;
+		head = head->next;
+	}
+	return (total);
 }
 
 void		ft_clean_flist(t_flist **file)
@@ -195,7 +211,6 @@ char 	*cut_name(char *str)
 
 void		ft_push_fname(t_flist **head, char *path)
 {
-//	static int first = 0;
 	t_flist *tmp = NULL;
 
 	int i = 0;
@@ -209,15 +224,13 @@ void		ft_push_fname(t_flist **head, char *path)
 	tmp->path = ft_strdup(path);
 	tmp->name = cut_name(path);
 	tmp->next = (*head);
-//	if (first == 0)
-//		free(*head);
 	(*head) = tmp;
-//	first++;
 }
 
 void		ft_get_size(struct stat buf, t_flist **file)
 {
-	(*file)->size = buf.st_size;	
+	(*file)->size = buf.st_size;
+	(*file)->blocks = buf.st_blocks;
 }
 
 void		ft_get_time(struct stat buf, t_flist **file)
@@ -526,6 +539,6 @@ int			main(int argc, char **argv)
 	ft_delete_flist(&head);
 	free(options);
 	free(ptr);
-	system("leaks ft_ls");
+	//system("leaks ft_ls");
 	return (0);
 }

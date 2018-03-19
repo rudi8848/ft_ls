@@ -64,18 +64,19 @@ ssize_t		ft_printf_putchar(char **fmt, va_list *args, t_options *options, int *r
 	char *ptr;
 	int ret = 0;
 
+	symb = va_arg(*args, int);
 	if (options->width && !options->left_align)
 	{
 		if (options->fill_by_zero)
 			ret += fillnchar(1, options->width, '0');
 		else
 			ret += fillnchar(1, options->width, ' ');
-			ft_putchar(symb);
-			ret += 1;
+		ft_putchar(symb);
+		ret += 1;
 	}
 	else
 	{
-		ft_putchar(*ptr);
+		ft_putchar(symb);
 		ret += 1;
 	}
 	if (options->width && options->left_align)
