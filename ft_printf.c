@@ -15,7 +15,7 @@ ssize_t		ft_printf_putstr(char **fmt, va_list *args, t_options *options, int *re
 	int ret = 0;
 
 	len = 0;
-	if (!fmt || !options)		//<-------- to do
+	if (!fmt)		//<-------- to do
 		exit(ERROR);
 	char *str = (char*)va_arg(*args, const char*);
 	char *tmp = NULL;
