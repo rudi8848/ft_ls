@@ -12,12 +12,12 @@
 
 #define RESET		"\033[0m"
 #define BOLD		"\033[1m"
-#define RED 		"\033[1;31m"
+#define RED 		"\033[0;31m"
 #define GREEN 		"\033[0;32m"
-#define YELLOW		"\033[1;33m"
+#define YELLOW		"\033[0;33m"
+#define BLUE		"\033[0;34m"
 #define MAGENTA		"\033[0;35m"
 #define CYAN		"\033[1;36m"
-#define WHITE		"\033[1;37m"
 #define SIX_MONTH	15724800
 
 typedef	struct	s_opt
@@ -33,7 +33,7 @@ typedef struct		s_flist
 {
 	char			*name;
 	char			*path;
-	char			*mode;
+	char			mode[11];
 	short			nlink;
 	char			*user;
 	char			*group;
@@ -41,6 +41,7 @@ typedef struct		s_flist
 	long			blocks;
 	char			*date;
 	char			*color;
+	char			*ref;
 	time_t			mtime;
 	struct s_flist	*next;
 }					t_flist;
@@ -92,10 +93,10 @@ void		ft_print_flist(t_opt options, t_flist *head)
 	while (head)
 	{
 		if (options.l)
-		ft_printf("%-11s%4hi %10s %5s%8ld %-12s %s%s%s\n",
+		ft_printf("%-11s%4hi %10s %5s%8ld %-12s %s%s%s%s\n",
 		head->mode, head->nlink, head->user, head->group,
 				head->size, head->date, head->color,
-				head->name, RESET);
+				head->name, RESET, head->ref);
 		else
 			ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 		head = head->next;
@@ -123,7 +124,7 @@ void	print_recursion(char *path, t_opt options)
 	new_head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (! new_head)
 	{
-		perror(__FUNCTION__);
+		perror("cannot allocate memory");
 		exit(EXIT_FAILURE);
 	}
 	ptr = new_head;
@@ -151,7 +152,6 @@ void		ft_clean_flist(t_flist **file)
 {
 	ft_strdel(&(*file)->name);
 	ft_strdel(&(*file)->path);
-	ft_strdel(&(*file)->mode);
 	ft_strdel(&(*file)->user);
 	ft_strdel(&(*file)->group);
 	ft_strdel(&(*file)->date);
@@ -274,14 +274,16 @@ void		ft_get_time(struct stat buf, t_flist **file)
 
 void		ft_get_mode(struct stat buf, t_flist **file)
 {
-	(*file)->mode = ft_strnew(10);
-	if (!(*file)->mode)
-	{
-		perror("Error");
-		exit(EXIT_FAILURE);
-	}
 	if (S_ISLNK(buf.st_mode))
 		(*file)->mode[0] = 'l';
+	else if (S_ISCHR(buf.st_mode))
+		(*file)->mode[0] = 'c';
+	else if (S_ISFIFO(buf.st_mode))
+		(*file)->mode[0] = 'p';
+	else if (S_ISSOCK(buf.st_mode))
+		(*file)->mode[0] = 's';
+	else if (S_ISBLK(buf.st_mode))
+		(*file)->mode[0] = 'b';
 	else
 		(*file)->mode[0] = S_IFDIR & buf.st_mode ? 'd' : '-';
 	(*file)->mode[1] = S_IRUSR & buf.st_mode ? 'r' : '-';
@@ -293,6 +295,7 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode[7] = S_IROTH & buf.st_mode ? 'r' : '-';
 	(*file)->mode[8] = S_IWOTH & buf.st_mode ? 'w' : '-';
 	(*file)->mode[9] = S_IXOTH & buf.st_mode ? 'x' : '-';
+	(*file)->mode[10] = '\0';
 }
 
 void		ft_get_links(struct stat buf, t_flist **file)
@@ -300,23 +303,47 @@ void		ft_get_links(struct stat buf, t_flist **file)
 	(*file)->nlink = buf.st_nlink;
 }
 
+void		ft_read_link(struct stat buf, t_flist **head)
+{
+	printf("-----%s\n", __FUNCTION__);
+	int		len;
+	char	*ref;
+	int		ret;
+
+	len = buf.st_size;
+	ref = (char*)ft_memalloc(sizeof(char) * (len + 1));
+	ret = readlink((*head)->path, ref, len);
+	if (ret < 0)
+		perror("cannot read");
+	//(*head)->ref = ft_strdup(strcat(" -> ", ref));
+	free(ref);
+}
+
 void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 {
 	ft_push_fname(head, path);
 	(*head)->mtime = buf.st_mtime;
-	if (buf.st_mode & S_IFDIR)
+	if (S_ISDIR(buf.st_mode))
 		(*head)->color = CYAN;
 	else if (S_ISLNK(buf.st_mode))
 		(*head)->color = MAGENTA;
+	else if (S_ISCHR(buf.st_mode))
+		(*head)->color = RED;
+	else if (S_ISBLK(buf.st_mode))
+		(*head)->color = BLUE;
+	else if (S_ISFIFO(buf.st_mode))
+		(*head)->color = YELLOW;
 	else if (buf.st_mode & S_IFREG && buf.st_mode & S_IXUSR)
 		(*head)->color = GREEN;
-	else (*head)->color = "";
+	else
+		(*head)->color = "";
 	if (options.l)
 	{
 		if (S_ISLNK(buf.st_mode))
-		{
-			;
-		}
+			ft_read_link(buf, head);
+		else
+			(*head)->ref = "";
+		printf("-----%s\n", __FUNCTION__);
 		ft_get_mode(buf, head);
 		ft_get_user_group(buf, head);
 		ft_get_time(buf, head);
@@ -454,22 +481,20 @@ int		ft_read_args(char *name, t_opt options, t_flist **head)
 	int			ret;
 	struct stat		buf;
 
-	ret = stat(name, &buf);
+	ret = lstat(name, &buf);
 	if (ret >= 0)
 	{
-		if (S_ISLNK(buf.st_mode))
-		{
-			lstat(name, &buf);
-			ft_read_file(name, options, buf, head);
-		}
-		else if (S_ISREG(buf.st_mode))
-			ft_read_file(name, options, buf, head);
-		else if (S_ISDIR(buf.st_mode))
+		if (S_ISDIR(buf.st_mode))
 			ft_read_dir(name, options, head);
+		else/* (S_ISLNK(buf.st_mode) || S_ISREG(buf.st_mode))*/
+			ft_read_file(name, options, buf, head);
 		return (1);
 	}
 	else
+	{
+			ft_printf("./ft_ls: %s: ", name);
 			perror("cannot access");
+	}
 		return (0);
 }
 
@@ -528,11 +553,22 @@ int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 		{
 			res = ft_read_args(argv[i], *options, head);
 			f++;
+			if (res)
+			{
+				*head = ft_sort_flist(*options, *head);
+				ft_print_flist(*options, *head);
+				ft_delete_flist(head);
+			}
 		}
 		i++;
 	}
 	if (!f)
+	{
 		res = ft_read_args(".", *options, head);
+		*head = ft_sort_flist(*options, *head);
+		ft_print_flist(*options, *head);
+		ft_delete_flist(head);
+	}
 	return (res);
 }
 
@@ -552,13 +588,9 @@ int			main(int argc, char **argv)
 	if (argc > 1)
 		res = ft_parse_args(argc, argv, options, &head);
 	else
-		res = ft_read_args(".", *options, &head);
+		res = ft_parse_args(1, NULL, options, &head);
 	if (res)
 	{
-		head = ft_sort_flist(*options, head);
-		ft_print_flist(*options, head);
-		ft_flist_count(head);
-		ft_delete_flist(&head);
 		free(options);
 		free(ptr);
 	}
