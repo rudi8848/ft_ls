@@ -1,89 +1,33 @@
-#include <dirent.h>
-#include <sys/types.h>
-#include <pwd.h>
-#include <grp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <time.h>
-#include "libft/includes/libft.h"
-#include "ft_printf.h"
-#include <errno.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_ls.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gvynogra <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/03/20 15:27:09 by gvynogra          #+#    #+#             */
+/*   Updated: 2018/03/20 15:27:19 by gvynogra         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#define RESET		"\033[0m"
-#define BOLD		"\033[1m"
-#define RED 		"\033[0;31m"
-#define GREEN 		"\033[0;32m"
-#define YELLOW		"\033[0;33m"
-#define BLUE		"\033[0;34m"
-#define MAGENTA		"\033[0;35m"
-#define CYAN		"\033[1;36m"
-#define SIX_MONTH	15724800
+#include "ft_ls.h"
 
-typedef	struct	s_opt
+void			ft_print_elem(t_opt options, t_flist *head)
 {
-	int			a;
-	int			l;
-	int			rr;
-	int			r;
-	int			t;
-}				t_opt;
-
-typedef struct		s_flist
-{
-	char			*name;
-	char			*path;
-	char			mode[11];
-	short			nlink;
-	char			*user;
-	char			*group;
-	long			size;
-	long			blocks;
-	char			*date;
-	char			*color;
-	char			*ref;
-	time_t			mtime;
-	struct s_flist	*next;
-}					t_flist;
-
-typedef int (*pfCompare)(int, int);
-
-typedef enum
-{
-	SO_ASC,
-	SO_DESC,
-	SORT_ORDERS
-} e_sort_order;
-
-
-int			ft_read_args(char *name, t_opt options, t_flist **head);
-void		ft_get_time(struct stat buf, t_flist **head);
-//void		ft_read_file();
-void		ft_get_user_group(struct stat buf, t_flist **head);
-int			ft_flist_count(t_flist *head);
-void		ft_read_dir(char *path, t_opt options, t_flist **head);
-void		print_recursion(char *path, t_opt options);
-void		ft_clean_flist(t_flist **file);
-t_flist		*ft_sort_flist(t_opt options, t_flist *head);
-t_flist		*ft_sort_by_name(t_flist *head, pfCompare cmp);
-t_flist		*ft_sort_by_mtime(t_flist *head, pfCompare cmp);
-void		ft_delete_flist(t_flist **head);
-long		ft_count_blocks(t_flist *head);
-
-int			ft_cmp_ascending(int a, int b)
-{
-	return (a >= b);
+	if (options.l)
+		ft_printf("%-11s%4hi%10s%5s%7ld %-s%s %s%s%s\n",
+			head->mode, head->nlink, head->user, head->group,
+			head->size, head->date, head->color,
+			head->name, RESET, head->ref);
+	else
+		ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 }
 
-int			ft_cmp_descending(int a, int b)
+void			ft_print_flist(t_opt options, t_flist *head)
 {
-	return (a < b);
-}
-
-void		ft_print_flist(t_opt options, t_flist *head)
-{
-	int total = 0;
-	t_flist *phead;
+	int			total;
+	t_flist		*phead;
+	struct stat buf;
 
 	phead = head;
 	total = ft_count_blocks(head);
@@ -91,37 +35,31 @@ void		ft_print_flist(t_opt options, t_flist *head)
 		ft_printf("total %d\n", total);
 	while (head)
 	{
-		if (options.l)
-		ft_printf("%-11s%4hi %10s %5s%8ld %-12s %s%s%s%s\n",
-		head->mode, head->nlink, head->user, head->group,
-				head->size, head->date, head->color,
-				head->name, RESET, head->ref);
-		else
-			ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
+		ft_print_elem(options, head);
 		head = head->next;
 	}
 	if (options.rr)
+	{
+		while (phead)
 		{
-			while (phead)
-			{
-				struct stat buf;
-				stat(phead->path, &buf);
-				if (buf.st_mode & S_IFDIR && buf.st_nlink > 1 &&
-					!ft_strequ(phead->name, ".") && !ft_strequ(phead->name, ".."))
-					print_recursion(phead->path, options);
-				phead = phead->next;
-			}
+			lstat(phead->path, &buf);
+			if (buf.st_mode & S_IFDIR && buf.st_nlink > 1 &&
+				!ft_strequ(phead->name, ".") &&
+				!ft_strequ(phead->name, ".."))
+				print_recursion(phead->path, options);
+			phead = phead->next;
 		}
+	}
 }
 
-void	print_recursion(char *path, t_opt options)
+void			print_recursion(char *path, t_opt options)
 {
-	ft_printf("\n%s:\n", path);
 	t_flist		*new_head;
 	t_flist		*ptr;
 
+	ft_printf("\n%s:\n", path);
 	new_head = (t_flist*)ft_memalloc(sizeof(t_flist));
-	if (! new_head)
+	if (!new_head)
 	{
 		perror("cannot allocate memory");
 		exit(EXIT_FAILURE);
@@ -134,7 +72,7 @@ void	print_recursion(char *path, t_opt options)
 	free(ptr);
 }
 
-long	ft_count_blocks(t_flist *head)
+long		ft_count_blocks(t_flist *head)
 {
 	long	total;
 
@@ -147,7 +85,7 @@ long	ft_count_blocks(t_flist *head)
 	return (total);
 }
 
-void		ft_clean_flist(t_flist **file)
+void			ft_clean_flist(t_flist **file)
 {
 	ft_strdel(&(*file)->name);
 	ft_strdel(&(*file)->path);
@@ -158,9 +96,9 @@ void		ft_clean_flist(t_flist **file)
 		ft_strdel(&(*file)->ref);
 }
 
-void		ft_delete_flist(t_flist **head)
+void			ft_delete_flist(t_flist **head)
 {
-	t_flist 	*tmp;
+	t_flist		*tmp;
 
 	while ((*head))
 	{
@@ -177,8 +115,7 @@ void		ft_delete_flist(t_flist **head)
 	}
 }
 
-
-int			ft_flist_count(t_flist *head)
+int				ft_flist_count(t_flist *head)
 {
 	int			i;
 
@@ -193,11 +130,11 @@ int			ft_flist_count(t_flist *head)
 	return (i);
 }
 
-char 	*cut_name(char *str)
+char			*cut_name(char *str)
 {
-	int len;
-	int start;
-	char *dest;
+	int			len;
+	int			start;
+	char		*dest;
 
 	len = ft_strlen(str);
 	start = len;
@@ -210,9 +147,7 @@ char 	*cut_name(char *str)
 
 void		ft_push_fname(t_flist **head, char *path)
 {
-	t_flist *tmp = NULL;
-
-	int i = 0;
+	t_flist		*tmp;
 
 	tmp = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!tmp)
@@ -226,54 +161,41 @@ void		ft_push_fname(t_flist **head, char *path)
 	(*head) = tmp;
 }
 
-void		ft_get_size(struct stat buf, t_flist **file)
+void			ft_get_size(struct stat buf, t_flist **file)
 {
 	(*file)->size = buf.st_size;
 	(*file)->blocks = buf.st_blocks;
 }
 
-void		ft_get_time(struct stat buf, t_flist **file)
+void			ft_get_time(struct stat buf, t_flist **file)
 {
-	char	*date;
-	int		i;
-	time_t	current;
-	char	*day;
-	char	*month;
+	char		*date;
+	char		*day;
+	char		*month;
+	char		*tim;
+	char		*year;
 
-	char	*str;
-	char	*tim;
-	char	*year;
-	char	*tmp;
-
-	current = time(0);
 	date = ctime(&buf.st_mtime);
 	if (!date)
 	{
 		perror(__FUNCTION__);
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	day = ft_strsub(date, 8, 3);
 	month = ft_strsub(date, 4, 4);
 	tim = ft_strsub(date, 11, 5);
 	year = ft_strsub(date, 20, 4);
-	str = ft_strcat(month, day);
-	if (current - buf.st_mtime < SIX_MONTH)
-		{
-			tmp = ft_strcat(str, tim);
-			(*file)->date = ft_strdup(tmp);
-		}
+	if (time(0) - buf.st_mtime < SIX_MONTH)
+		(*file)->date = ft_strjoin(ft_strcat(month, day), tim);
 	else
-		{
-			tmp = ft_strcat(str, year);
-			(*file)->date = ft_strdup(tmp);
-		}
+		(*file)->date = ft_strjoin(ft_strcat(month, day), year);
 	free(day);
 	free(month);
 	free(tim);
 	free(year);
 }
 
-void		ft_get_mode(struct stat buf, t_flist **file)
+void			ft_get_mode(struct stat buf, t_flist **file)
 {
 	if (S_ISLNK(buf.st_mode))
 		(*file)->mode[0] = 'l';
@@ -299,17 +221,12 @@ void		ft_get_mode(struct stat buf, t_flist **file)
 	(*file)->mode[10] = '\0';
 }
 
-void		ft_get_links(struct stat buf, t_flist **file)
+void			ft_read_link(struct stat buf, t_flist **head)
 {
-	(*file)->nlink = buf.st_nlink;
-}
-
-void		ft_read_link(struct stat buf, t_flist **head)
-{
-	int		len;
-	char	*ref;
-	int		ret;
-	char	*prefix;
+	int				len;
+	char			*ref;
+	int				ret;
+	char			*prefix;
 
 	len = buf.st_size;
 	ref = (char*)ft_memalloc(sizeof(char) * (len + 1));
@@ -322,10 +239,8 @@ void		ft_read_link(struct stat buf, t_flist **head)
 	free(ref);
 }
 
-void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
+void			ft_set_color(struct stat buf, t_flist **head)
 {
-	ft_push_fname(head, path);
-	(*head)->mtime = buf.st_mtime;
 	if (S_ISDIR(buf.st_mode))
 		(*head)->color = CYAN;
 	else if (S_ISLNK(buf.st_mode))
@@ -340,34 +255,50 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 		(*head)->color = GREEN;
 	else
 		(*head)->color = "";
-	if (options.l)
+}
+
+void			ft_read_file(char *pth, t_opt opt, struct stat bf, t_flist **hd)
+{
+	ft_push_fname(hd, pth);
+	(*hd)->mtime = bf.st_mtime;
+	ft_set_color(bf, hd);
+	(*hd)->ref = "";
+	if (opt.l)
 	{
-		if (S_ISLNK(buf.st_mode))
-			ft_read_link(buf, head);
-		else
-			(*head)->ref = "";
-		ft_get_mode(buf, head);
-		ft_get_user_group(buf, head);
-		ft_get_time(buf, head);
-		ft_get_size(buf, head);
-		ft_get_links(buf, head);
+		if (S_ISLNK(bf.st_mode))
+			ft_read_link(bf, hd);
+		ft_get_mode(bf, hd);
+		ft_get_user_group(bf, hd);
+		ft_get_time(bf, hd);
+		ft_get_size(bf, hd);
+		(*hd)->nlink = bf.st_nlink;
 	}
 }
 
-void		ft_read_dir(char *name, t_opt options, t_flist **head)
+void			ft_read_dir_info(char *dnm, char *fnm, t_opt opt, t_flist **hd)
 {
-	struct dirent 	*info = NULL;
-	struct stat 	buf;
-	DIR				*dirp = NULL;
+	struct stat		buf;
 	char			*path;
 	char			*prefix;
 
+	prefix = ft_strjoin(dnm, "/");
+	path = ft_strjoin(prefix, fnm);
+	lstat(path, &buf);
+	ft_read_file(path, opt, buf, hd);
+	free(prefix);
+	free(path);
+}
+
+void			ft_read_dir(char *name, t_opt options, t_flist **head)
+{
+	struct dirent	*info;
+	DIR				*dirp;
 
 	dirp = opendir(name);
 	if (dirp == NULL)
 	{
 		perror("cannot open");
-		return;
+		return ;
 	}
 	while ((info = readdir(dirp)))
 	{
@@ -377,18 +308,13 @@ void		ft_read_dir(char *name, t_opt options, t_flist **head)
 			continue;
 		}
 		if (!options.a && ((*info).d_name[0] == '.'))
-		 		continue;
-		prefix = ft_strjoin(name, "/");
-		path = ft_strjoin(prefix, info->d_name);
-		lstat(path, &buf);
-		ft_read_file(path, options, buf,head);
-		free(prefix);
-		free(path);
+			continue;
+		ft_read_dir_info(name, info->d_name, options, head);
 	}
 	closedir(dirp);
 }
 
-void		ft_get_user_group(struct stat buf, t_flist **head)
+void			ft_get_user_group(struct stat buf, t_flist **head)
 {
 	struct passwd	*s_user;
 	struct group	*s_group;
@@ -397,90 +323,11 @@ void		ft_get_user_group(struct stat buf, t_flist **head)
 	(*head)->user = ft_strdup(s_user->pw_name);
 	s_group = getgrgid(buf.st_gid);
 	(*head)->group = ft_strdup(s_group->gr_name);
-
 }
 
-t_flist			*ft_sort_flist(t_opt options, t_flist *head)
+int			ft_read_args(char *name, t_opt options, t_flist **head)
 {
-	pfCompare	cmp[SORT_ORDERS];
-
-	cmp[SO_ASC] = ft_cmp_ascending;
-	cmp[SO_DESC] = ft_cmp_descending;
-
-	if (!options.r && !options.t)
-		head = ft_sort_by_name(head, cmp[SO_ASC]);
-	else if (options.r && !options.t)
-		head = ft_sort_by_name(head, cmp[SO_DESC]);
-	else if (options.t && !options.r)
-		head = ft_sort_by_mtime(head, cmp[SO_ASC]);
-	else if (options.t && options.r)
-		head = ft_sort_by_mtime(head, cmp[SO_DESC]);
-	return (head);
-}
-
-t_flist 		*ft_sort_by_mtime(t_flist *head, pfCompare cmp)
-{
-	t_flist *a = NULL;
-	t_flist *b;
-	t_flist *c;
-    
-    while (head != NULL )
-    {  
-        if(head->next)
-        	b = head;
-        else
-        	return (a);
-        head = head->next;
-        if (a == NULL || cmp(b->mtime, a->mtime))
-        {
-            b->next = a;
-            a = b;
-        }
-        else
-        {
-            c = a;
-            while (c->next != NULL && !cmp(b->mtime, c->next->mtime))  
-                  c = c->next;
-            b->next = c->next;
-            c->next = b;
-        }
-    }
-    return (a);
-}
-
-t_flist 		*ft_sort_by_name(t_flist *head, pfCompare cmp)
-{
-    t_flist *a = NULL;
-	t_flist *b;
-	t_flist *c;
-    
-    while (head != NULL )
-    {  
-        if(head->next)
-        	b = head;
-        else
-        	return (a);
-        head = head->next;
-        if (a == NULL || cmp(0, ft_strcmp(b->name, a->name)))
-        {
-            b->next = a;
-            a = b;
-        }
-        else
-        {
-            c = a;
-            while (c->next != NULL && !cmp(0, ft_strcmp(b->name, c->next->name)))  
-                  c = c->next;
-            b->next = c->next;
-            c->next = b;
-        }
-    }
-    return (a);
-}
-
-int		ft_read_args(char *name, t_opt options, t_flist **head)
-{
-	int			ret;
+	int				ret;
 	struct stat		buf;
 
 	ret = lstat(name, &buf);
@@ -488,99 +335,111 @@ int		ft_read_args(char *name, t_opt options, t_flist **head)
 	{
 		if (S_ISDIR(buf.st_mode))
 			ft_read_dir(name, options, head);
-		else/* (S_ISLNK(buf.st_mode) || S_ISREG(buf.st_mode))*/
+		else
 			ft_read_file(name, options, buf, head);
 		return (1);
 	}
 	else
 	{
-			ft_printf("./ft_ls: %s: ", name);
-			perror("cannot access");
+		ft_printf("./ft_ls: %s: ", name);
+		perror("cannot access");
 	}
-		return (0);
+	return (0);
+}
+
+int			ft_set_option(char symb, t_opt *options)
+{
+	if (symb == 'a' || symb == 'l' || symb == 'R'
+		|| symb == 'r' || symb == 't' || symb == '1')
+	{
+		if (symb == 'a')
+			options->a = 1;
+		if (symb == 'l')
+			options->l = 1;
+		if (symb == 'R')
+			options->rr = 1;
+		if (symb == 'r')
+			options->r = 1;
+		if (symb == 't')
+			options->t = 1;
+		return (1);
+	}
+	return (0);
 }
 
 t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 {
-	int i = 1;
-	char *ptr;
+	int				i;
+	char			*ptr;
 
+	i = 1;
 	while (i < argc)
 	{
 		if (*argv[i] == '-')
 		{
 			ptr = argv[i];
 			++ptr;
-			while (*ptr && ft_isalnum(*ptr))
+			while (*ptr)
 			{
-				if (*ptr == 'a' || *ptr == 'l' || *ptr == 'R'
-					|| *ptr == 'r' || *ptr == 't'  || *ptr == '1')
+				if (!ft_set_option(*ptr, options))
 				{
-					if (*ptr == 'a')
-						options->a = 1;
-					if (*ptr == 'l')
-						options->l = 1;
-					if (*ptr == 'R')
-						options->rr = 1;
-					if (*ptr == 'r')
-						options->r = 1;
-					if (*ptr == 't')
-						options->t = 1;
-				}
-				else
-				{
-					ft_printf("illegal option '%c'\nusage: ./ft_ls [-larRt] [file]\n", *ptr);
-					exit (EXIT_FAILURE);
+					ft_printf("./ft_ls: illegal option '%c'\n", *ptr);
+					ft_printf("usage: ./ft_ls [-larRt] [file ...]\n");
+					exit(EXIT_FAILURE);
 				}
 				ptr++;
 			}
 		}
-			i++;
+		i++;
 	}
 	return (options);
+}
+
+void		ft_ls(t_opt options, t_flist *head)
+{
+	head = ft_sort_flist(options, head);
+	ft_print_flist(options, head);
+	ft_delete_flist(&head);
 }
 
 int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 {
 	int				i;
-	int				f = 0;
-	int 			res = 0;
-	char ***ptr = &argv;
-	i = 1;
+	int				f;
+	int				res;
+	char			***ptr;
 
+	f = 0;
+	i = 1;
+	ptr = &argv;
 	options = ft_read_options(argc, *ptr, options);
-	while (i < argc)
+	while (i++ < argc)
 	{
 		if (argv[i] && argv[i][0] != '-')
 		{
 			res = ft_read_args(argv[i], *options, head);
 			f++;
 			if (res)
-			{
-				*head = ft_sort_flist(*options, *head);
-				ft_print_flist(*options, *head);
-				ft_delete_flist(head);
-			}
+				ft_ls(*options, *head);
 		}
-		i++;
 	}
 	if (!f)
 	{
 		res = ft_read_args(".", *options, head);
-		*head = ft_sort_flist(*options, *head);
-		ft_print_flist(*options, *head);
-		ft_delete_flist(head);
+		ft_ls(*options, *head);
 	}
 	return (res);
 }
 
 int			main(int argc, char **argv)
 {
-	t_flist		*head = NULL;
-	t_opt		*options;
-	int			res;
-	t_flist		*ptr;
+	t_flist			*head;
+	t_opt			*options;
+	int				res;
+	t_flist			*ptr;
 
+	head = NULL;
+	options = NULL;
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
@@ -591,6 +450,8 @@ int			main(int argc, char **argv)
 		res = ft_parse_args(argc, argv, options, &head);
 	else
 		res = ft_parse_args(1, NULL, options, &head);
+	if (!res)
+		return (-1);
 	free(options);
 	free(ptr);
 	//system("leaks ft_ls");

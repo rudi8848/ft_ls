@@ -1,6 +1,6 @@
 NAME = ft_ls
 OBJ = $(SRC:.c=.o)
-SRC = ft_ls.c ft_printf.c
+SRC = ft_ls.c ft_printf.c ft_ls_sort.c
 LIB = libft/libft.a
 
 all: $(NAME)
