@@ -59,10 +59,9 @@ typedef enum
 int			ft_read_args(char *name, t_opt options, t_flist **head);
 void		ft_get_time(struct stat buf, t_flist **head);
 //void		ft_read_file();
-//void		ft_read_dir(/*DIR **dirp,*/ t_opt *options, t_flist **head);
 void		ft_get_user_group(struct stat buf, t_flist **head);
 int			ft_flist_count(t_flist *head);
-void		ft_read_dir(/*DIR **dirp,*/char *name, t_opt options, t_flist **head);
+void		ft_read_dir(char *path, t_opt options, t_flist **head);
 void		print_recursion(char *path, t_opt options);
 void		ft_clean_flist(t_flist **file);
 t_flist		*ft_sort_flist(t_opt options, t_flist *head);
@@ -155,6 +154,8 @@ void		ft_clean_flist(t_flist **file)
 	ft_strdel(&(*file)->user);
 	ft_strdel(&(*file)->group);
 	ft_strdel(&(*file)->date);
+	if ((*file)->ref[0] != '\0')
+		ft_strdel(&(*file)->ref);
 }
 
 void		ft_delete_flist(t_flist **head)
@@ -305,17 +306,19 @@ void		ft_get_links(struct stat buf, t_flist **file)
 
 void		ft_read_link(struct stat buf, t_flist **head)
 {
-	printf("-----%s\n", __FUNCTION__);
 	int		len;
 	char	*ref;
 	int		ret;
+	char	*prefix;
 
 	len = buf.st_size;
 	ref = (char*)ft_memalloc(sizeof(char) * (len + 1));
 	ret = readlink((*head)->path, ref, len);
 	if (ret < 0)
 		perror("cannot read");
-	//(*head)->ref = ft_strdup(strcat(" -> ", ref));
+	ref[len] = '\0';
+	prefix = " -> ";
+	(*head)->ref = ft_strjoin(prefix, ref);
 	free(ref);
 }
 
@@ -343,7 +346,6 @@ void		ft_read_file(char *path, t_opt options, struct stat buf, t_flist **head)
 			ft_read_link(buf, head);
 		else
 			(*head)->ref = "";
-		printf("-----%s\n", __FUNCTION__);
 		ft_get_mode(buf, head);
 		ft_get_user_group(buf, head);
 		ft_get_time(buf, head);
@@ -589,13 +591,8 @@ int			main(int argc, char **argv)
 		res = ft_parse_args(argc, argv, options, &head);
 	else
 		res = ft_parse_args(1, NULL, options, &head);
-	if (res)
-	{
-		free(options);
-		free(ptr);
-	}
-	else
-		return (-1);
+	free(options);
+	free(ptr);
 	//system("leaks ft_ls");
 	return (0);
 }
