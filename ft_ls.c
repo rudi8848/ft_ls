@@ -68,7 +68,7 @@ void			print_recursion(char *path, t_opt options)
 	ft_read_dir(path, options, &new_head);
 	new_head = ft_sort_flist(options, new_head);
 	ft_print_flist(options, new_head);
-	ft_delete_flist(&new_head);
+	ft_delete_flist(options, &new_head);
 	free(ptr);
 }
 
@@ -85,18 +85,21 @@ long		ft_count_blocks(t_flist *head)
 	return (total);
 }
 
-void			ft_clean_flist(t_flist **file)
+void			ft_clean_flist(t_opt options, t_flist **file)
 {
 	ft_strdel(&(*file)->name);
 	ft_strdel(&(*file)->path);
-	ft_strdel(&(*file)->user);
-	ft_strdel(&(*file)->group);
-	ft_strdel(&(*file)->date);
+	if (options.l)
+	{
+		ft_strdel(&(*file)->user);
+		ft_strdel(&(*file)->group);
+		ft_strdel(&(*file)->date);
+	}
 	if ((*file)->ref[0] != '\0')
 		ft_strdel(&(*file)->ref);
 }
 
-void			ft_delete_flist(t_flist **head)
+void			ft_delete_flist(t_opt options, t_flist **head)
 {
 	t_flist		*tmp;
 
@@ -104,12 +107,12 @@ void			ft_delete_flist(t_flist **head)
 	{
 		tmp = (*head);
 		(*head) = (*head)->next;
-		ft_clean_flist(&tmp);
+		ft_clean_flist(options, &tmp);
 		free(tmp);
 	}
 	if (*head)
 	{
-		ft_clean_flist(head);
+		ft_clean_flist(options, head);
 		free(head);
 		(*head) = NULL;
 	}
@@ -174,8 +177,10 @@ void			ft_get_time(struct stat buf, t_flist **file)
 	char		*month;
 	char		*tim;
 	char		*year;
+	time_t		current;
 
 	date = ctime(&buf.st_mtime);
+	current = time(0);
 	if (!date)
 	{
 		perror(__FUNCTION__);
@@ -185,7 +190,7 @@ void			ft_get_time(struct stat buf, t_flist **file)
 	month = ft_strsub(date, 4, 4);
 	tim = ft_strsub(date, 11, 5);
 	year = ft_strsub(date, 20, 4);
-	if (time(0) - buf.st_mtime < SIX_MONTH)
+	if (current - buf.st_mtime < SIX_MONTH || buf.st_mtime - current < FUTURE)
 		(*file)->date = ft_strjoin(ft_strcat(month, day), tim);
 	else
 		(*file)->date = ft_strjoin(ft_strcat(month, day), year);
@@ -275,24 +280,22 @@ void			ft_read_file(char *pth, t_opt opt, struct stat bf, t_flist **hd)
 	}
 }
 
-void			ft_read_dir_info(char *dnm, char *fnm, t_opt opt, t_flist **hd)
+void			ft_read_dir_info(char *pref, char *fnm, t_opt opt, t_flist **hd)
 {
 	struct stat		buf;
 	char			*path;
-	char			*prefix;
-
-	prefix = ft_strjoin(dnm, "/");
-	path = ft_strjoin(prefix, fnm);
+	
+	path = ft_strjoin(pref, fnm);
 	lstat(path, &buf);
 	ft_read_file(path, opt, buf, hd);
-	free(prefix);
 	free(path);
 }
 
 void			ft_read_dir(char *name, t_opt options, t_flist **head)
 {
-	struct dirent	*info;
-	DIR				*dirp;
+	struct dirent	*info = NULL;
+	DIR				*dirp = NULL;
+	char			*prefix;
 
 	dirp = opendir(name);
 	if (dirp == NULL)
@@ -300,6 +303,7 @@ void			ft_read_dir(char *name, t_opt options, t_flist **head)
 		perror("cannot open");
 		return ;
 	}
+	prefix = ft_strjoin(name, "/");
 	while ((info = readdir(dirp)))
 	{
 		if (info == NULL)
@@ -309,8 +313,9 @@ void			ft_read_dir(char *name, t_opt options, t_flist **head)
 		}
 		if (!options.a && ((*info).d_name[0] == '.'))
 			continue;
-		ft_read_dir_info(name, info->d_name, options, head);
+		ft_read_dir_info(prefix, info->d_name, options, head);
 	}
+	free(prefix);
 	closedir(dirp);
 }
 
@@ -397,9 +402,11 @@ t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 
 void		ft_ls(t_opt options, t_flist *head)
 {
-	head = ft_sort_flist(options, head);
+	if (head->next)
+		head = ft_sort_flist(options, head);
 	ft_print_flist(options, head);
-	ft_delete_flist(&head);
+	ft_delete_flist(options, &head);
+	free(head);
 }
 
 int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
@@ -409,11 +416,12 @@ int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 	int				res;
 	char			***ptr;
 
+	res = 0;
 	f = 0;
-	i = 1;
+	i = 0;
 	ptr = &argv;
 	options = ft_read_options(argc, *ptr, options);
-	while (i++ < argc)
+	while (++i < argc)
 	{
 		if (argv[i] && argv[i][0] != '-')
 		{

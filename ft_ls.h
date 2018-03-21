@@ -34,6 +34,7 @@
 # define MAGENTA	"\033[0;35m"
 # define CYAN		"\033[1;36m"
 # define SIX_MONTH	15724800
+# define FUTURE		3600
 
 typedef	struct		s_opt
 {
@@ -76,11 +77,11 @@ void				ft_get_user_group(struct stat buf, t_flist **head);
 int					ft_flist_count(t_flist *head);
 void				ft_read_dir(char *path, t_opt options, t_flist **head);
 void				print_recursion(char *path, t_opt options);
-void				ft_clean_flist(t_flist **file);
+void				ft_clean_flist(t_opt options, t_flist **file);
 t_flist				*ft_sort_flist(t_opt options, t_flist *head);
 t_flist				*ft_sort_by_name(t_flist *a, t_flist *head, t_pf_compare cmp);
 t_flist				*ft_sort_by_mtime(t_flist *a, t_flist *head, t_pf_compare cmp);
-void				ft_delete_flist(t_flist **head);
+void				ft_delete_flist(t_opt options, t_flist **head);
 long				ft_count_blocks(t_flist *head);
 int					ft_cmp_ascending(int a, int b);
 int					ft_cmp_descending(int a, int b);

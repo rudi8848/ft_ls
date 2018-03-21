@@ -27,9 +27,9 @@ t_flist			*ft_sort_flist(t_opt options, t_flist *head)
 	t_flist			*a;
 	t_pf_compare	cmp[SORT_ORDERS];
 
+	a = NULL;
 	cmp[SO_ASC] = ft_cmp_ascending;
 	cmp[SO_DESC] = ft_cmp_descending;
-	a = NULL;
 	if (!options.r && !options.t)
 		head = ft_sort_by_name(a, head, cmp[SO_ASC]);
 	else if (options.r && !options.t)
