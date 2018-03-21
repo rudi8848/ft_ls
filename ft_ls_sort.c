@@ -77,7 +77,7 @@ t_flist			*ft_sort_by_name(t_flist *a, t_flist *head, t_pf_compare cmp)
 
 	while (head != NULL)
 	{
-		if (head->next)
+		if (head->next != NULL)
 			b = head;
 		else
 			return (a);

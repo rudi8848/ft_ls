@@ -110,12 +110,13 @@ void			ft_delete_flist(t_opt options, t_flist **head)
 		ft_clean_flist(options, &tmp);
 		free(tmp);
 	}
+	/*
 	if (*head)
 	{
 		ft_clean_flist(options, head);
 		free(head);
 		(*head) = NULL;
-	}
+	}*/
 }
 
 int				ft_flist_count(t_flist *head)
@@ -406,7 +407,7 @@ void		ft_ls(t_opt options, t_flist *head)
 		head = ft_sort_flist(options, head);
 	ft_print_flist(options, head);
 	ft_delete_flist(options, &head);
-	free(head);
+	//free(head);
 }
 
 int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
@@ -423,6 +424,7 @@ int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 	options = ft_read_options(argc, *ptr, options);
 	while (++i < argc)
 	{
+		(*head)->next = NULL;
 		if (argv[i] && argv[i][0] != '-')
 		{
 			res = ft_read_args(argv[i], *options, head);
@@ -452,7 +454,6 @@ int			main(int argc, char **argv)
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!options || !head)
 		perror("Error");
-	head->next = NULL;
 	ptr = head;
 	if (argc > 1)
 		res = ft_parse_args(argc, argv, options, &head);
