@@ -401,16 +401,31 @@ t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 	return (options);
 }
 
-void		ft_ls(t_opt options, t_flist *head)
+int		ft_ls(t_opt options, char  *name)
 {
-	if (head->next)
+	t_flist *head;
+	t_flist	*ptr;
+	int res = 0;
+
+	head = (t_flist*)ft_memalloc(sizeof(t_flist));
+		if (!head)
+		{
+			perror("cannot allocate memory");
+			exit(EXIT_FAILURE);
+		}
+	ptr = head;
+	res = ft_read_args(name, options, &head);
+	if (res)
+	{
 		head = ft_sort_flist(options, head);
-	ft_print_flist(options, head);
-	ft_delete_flist(options, &head);
-	//free(head);
+		ft_print_flist(options, head);
+		ft_delete_flist(options, &head);
+	}
+	free(ptr);
+	return 0;
 }
 
-int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
+int			ft_parse_args(int argc, char **argv, t_opt *options)
 {
 	int				i;
 	int				f;
@@ -424,45 +439,34 @@ int			ft_parse_args(int argc, char **argv, t_opt *options, t_flist **head)
 	options = ft_read_options(argc, *ptr, options);
 	while (++i < argc)
 	{
-		(*head)->next = NULL;
 		if (argv[i] && argv[i][0] != '-')
 		{
-			res = ft_read_args(argv[i], *options, head);
 			f++;
-			if (res)
-				ft_ls(*options, *head);
+			res = ft_ls(*options, argv[i]);
 		}
 	}
 	if (!f)
-	{
-		res = ft_read_args(".", *options, head);
-		ft_ls(*options, *head);
-	}
+			res = ft_ls(*options, ".");
 	return (res);
 }
 
 int			main(int argc, char **argv)
 {
-	t_flist			*head;
 	t_opt			*options;
 	int				res;
 	t_flist			*ptr;
 
-	head = NULL;
 	options = NULL;
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
-	head = (t_flist*)ft_memalloc(sizeof(t_flist));
-	if (!options || !head)
+	if (!options)
 		perror("Error");
-	ptr = head;
 	if (argc > 1)
-		res = ft_parse_args(argc, argv, options, &head);
+		res = ft_parse_args(argc, argv, options);
 	else
-		res = ft_parse_args(1, NULL, options, &head);
+		res = ft_parse_args(1, NULL, options);
 	if (!res)
 		return (-1);
 	free(options);
-	free(ptr);
-	//system("leaks ft_ls");
+	system("leaks ft_ls");
 	return (0);
 }
