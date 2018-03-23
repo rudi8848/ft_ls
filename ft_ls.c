@@ -420,9 +420,9 @@ int		ft_ls(t_opt options, char  *name)
 		head = ft_sort_flist(options, head);
 		ft_print_flist(options, head);
 		ft_delete_flist(options, &head);
+		free(ptr);
 		return (1);
 	}
-	free(ptr);
 	return 0;
 }
 
