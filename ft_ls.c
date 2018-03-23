@@ -400,7 +400,7 @@ t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 	return (options);
 }
 
-int		ft_ls(t_opt options, char  *name)
+int			ft_ls(t_opt options, char *name)
 {
 	t_flist *head;
 	t_flist	*ptr;
@@ -423,7 +423,7 @@ int		ft_ls(t_opt options, char  *name)
 		free(ptr);
 		return (1);
 	}
-	return 0;
+	return (0);
 }
 
 int			ft_parse_args(int argc, char **argv, t_opt *options)
@@ -447,7 +447,7 @@ int			ft_parse_args(int argc, char **argv, t_opt *options)
 		}
 	}
 	if (!f)
-			res = ft_ls(*options, ".");
+		res = ft_ls(*options, ".");
 	return (res);
 }
 
@@ -467,6 +467,6 @@ int			main(int argc, char **argv)
 	if (!res)
 		return (-1);
 	free(options);
-	system("leaks ft_ls");
+	//system("leaks ft_ls");
 	return (0);
 }
