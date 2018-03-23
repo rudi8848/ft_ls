@@ -110,13 +110,12 @@ void			ft_delete_flist(t_opt options, t_flist **head)
 		ft_clean_flist(options, &tmp);
 		free(tmp);
 	}
-	/*
 	if (*head)
 	{
 		ft_clean_flist(options, head);
 		free(head);
 		(*head) = NULL;
-	}*/
+	}
 }
 
 int				ft_flist_count(t_flist *head)
@@ -405,14 +404,15 @@ int		ft_ls(t_opt options, char  *name)
 {
 	t_flist *head;
 	t_flist	*ptr;
-	int res = 0;
+	int res;
 
+	res = 0;
 	head = (t_flist*)ft_memalloc(sizeof(t_flist));
-		if (!head)
-		{
-			perror("cannot allocate memory");
-			exit(EXIT_FAILURE);
-		}
+	if (!head)
+	{
+		perror("cannot allocate memory");
+		exit(EXIT_FAILURE);
+	}
 	ptr = head;
 	res = ft_read_args(name, options, &head);
 	if (res)
@@ -420,6 +420,7 @@ int		ft_ls(t_opt options, char  *name)
 		head = ft_sort_flist(options, head);
 		ft_print_flist(options, head);
 		ft_delete_flist(options, &head);
+		return (1);
 	}
 	free(ptr);
 	return 0;
@@ -454,7 +455,6 @@ int			main(int argc, char **argv)
 {
 	t_opt			*options;
 	int				res;
-	t_flist			*ptr;
 
 	options = NULL;
 	options = (t_opt*)ft_memalloc(sizeof(t_opt));
