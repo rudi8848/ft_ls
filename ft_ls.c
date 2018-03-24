@@ -12,6 +12,91 @@
 
 #include "ft_ls.h"
 
+size_t			ft_maxlen(t_flist *head)
+{
+	printf("----------------%s\n", __FUNCTION__);
+	size_t			len;
+	size_t			max;
+
+	max = 0;
+	while (head)
+	{
+		if ((len = ft_strlen(head->name)) > max)
+			max = len;
+		head = head->next;
+	}
+	return (max);
+}
+
+void			ft_get_nbr_columns(t_flist *head, int *cols, int *col_width)
+{
+	printf("----------------%s\n", __FUNCTION__);
+	int				fd = 0;
+	struct winsize	*argp;
+	int				ret;
+	int				width;
+
+	fd = open("/dev/tty", O_RDONLY);
+	printf("---open tty [ OK ]\n");
+	if (fd < 0)
+		perror("Error open");
+	ret = ioctl(fd, TIOCGWINSZ, argp);
+	printf("---get winsize [ OK ]--- ret: %d\n", ret);
+	printf("colls: %d\n", argp->ws_col);
+	printf("rows: %d\n", argp->ws_row);
+	if (ret < 0)
+		perror("Error ioctl");
+	width = argp->ws_col;
+	*col_width = ft_maxlen(head) + 1;
+	*cols = width / *col_width;
+ }
+
+t_flist			*ft_get_nth(t_flist *head, int n)
+{
+	printf("----------------%s\n", __FUNCTION__);
+	int i = 0;
+	while (i < n)
+		head = head->next;
+	return (head);
+}
+
+void			ft_print_columns(t_flist *head)
+{
+	printf("----------------%s\n", __FUNCTION__);
+	int			cols;
+	int			col_width;
+	int			rows;
+	t_flist		*ptr;
+	int			total = ft_flist_counter(head);
+	int			i = 0;
+	int			j;
+	int			r = 0;
+
+	ft_get_nbr_columns(head, &cols, &col_width);
+	rows = total / cols;
+	if (!rows)
+		rows = 1;
+
+	while (i < total && r < rows)
+	{
+		j = 0;
+		while (j < cols)
+		{
+			if (i + rows * j < total)
+			{
+				ptr = ft_get_nth(head, i + rows *j);
+				ft_printf("%s%*s%s", ptr->color, ptr->name, RESET);
+			}
+			j++;
+		}
+
+		r++;
+		write(1, "\n",1);
+		i++;
+	}
+
+}
+
 void			ft_print_elem(t_opt options, t_flist *head)
 {
 	if (options.l)
@@ -20,7 +105,8 @@ void			ft_print_elem(t_opt options, t_flist *head)
 			head->size, head->date, head->color,
 			head->name, RESET, head->ref);
 	else
-		ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
+		ft_print_columns(head);
+		//ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 }
 
 void			ft_print_flist(t_opt options, t_flist *head)
@@ -118,7 +204,7 @@ void			ft_delete_flist(t_opt options, t_flist **head)
 	}
 }
 
-int				ft_flist_count(t_flist *head)
+int				ft_flist_counter(t_flist *head)
 {
 	int			i;
 

@@ -14,7 +14,10 @@
 # define FT_LS_H
 
 # include <dirent.h>
+# include <unistd.h>
 # include <sys/types.h>
+# include <fcntl.h>
+# include <sys/ioctl.h>
 # include <pwd.h>
 # include <grp.h>
 # include <stdio.h>
@@ -74,7 +77,7 @@ typedef enum
 int					ft_read_args(char *name, t_opt options, t_flist **head);
 void				ft_get_time(struct stat buf, t_flist **head);
 void				ft_get_user_group(struct stat buf, t_flist **head);
-int					ft_flist_count(t_flist *head);
+int					ft_flist_counter(t_flist *head);
 void				ft_read_dir(char *path, t_opt options, t_flist **head);
 void				print_recursion(char *path, t_opt options);
 void				ft_clean_flist(t_opt options, t_flist **file);
