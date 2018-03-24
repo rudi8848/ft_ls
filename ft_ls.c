@@ -14,7 +14,7 @@
 
 size_t			ft_maxlen(t_flist *head)
 {
-	printf("----------------%s\n", __FUNCTION__);
+	//printf("----------------%s\n", __FUNCTION__);
 	size_t			len;
 	size_t			max;
 
@@ -25,44 +25,55 @@ size_t			ft_maxlen(t_flist *head)
 			max = len;
 		head = head->next;
 	}
+	//printf("----- maxlen: %zu -----\n", max);
 	return (max);
 }
 
 void			ft_get_nbr_columns(t_flist *head, int *cols, int *col_width)
 {
-	printf("----------------%s\n", __FUNCTION__);
+	//printf("----------------%s\n", __FUNCTION__);
 	int				fd = 0;
-	struct winsize	*argp;
+	struct winsize	argp;
 	int				ret;
 	int				width;
 
 	fd = open("/dev/tty", O_RDONLY);
-	printf("---open tty [ OK ]\n");
+
 	if (fd < 0)
+	{
 		perror("Error open");
-	ret = ioctl(fd, TIOCGWINSZ, argp);
-	printf("---get winsize [ OK ]--- ret: %d\n", ret);
-	printf("colls: %d\n", argp->ws_col);
-	printf("rows: %d\n", argp->ws_row);
-	if (ret < 0)
+		exit(EXIT_FAILURE);
+	}
+	ret = ioctl(fd, TIOCGWINSZ, &argp);
+
+	if (ret != 0)
+	{
 		perror("Error ioctl");
-	width = argp->ws_col;
+		exit(EXIT_FAILURE);
+	}
+	width = argp.ws_col;
 	*col_width = ft_maxlen(head) + 1;
+	if (width < *col_width)
+		width = *col_width;
 	*cols = width / *col_width;
  }
 
 t_flist			*ft_get_nth(t_flist *head, int n)
 {
-	printf("----------------%s\n", __FUNCTION__);
+	//printf("----------------%s\n", __FUNCTION__);
 	int i = 0;
-	while (i < n)
+
+	while (i < n && head)
+	{
 		head = head->next;
+		i++;
+	}
 	return (head);
 }
 
 void			ft_print_columns(t_flist *head)
 {
-	printf("----------------%s\n", __FUNCTION__);
+	//printf("----------------%s\n", __FUNCTION__);
 	int			cols;
 	int			col_width;
 	int			rows;
@@ -76,7 +87,9 @@ void			ft_print_columns(t_flist *head)
 	rows = total / cols;
 	if (!rows)
 		rows = 1;
-
+	if (total % cols)
+		rows++;
+	//printf("--- cols: %d, rows: %d\n", cols, rows);
 	while (i < total && r < rows)
 	{
 		j = 0;
@@ -84,12 +97,12 @@ void			ft_print_columns(t_flist *head)
 		{
 			if (i + rows * j < total)
 			{
-				ptr = ft_get_nth(head, i + rows *j);
-				ft_printf("%s%*s%s", ptr->color, ptr->name, RESET);
+				//printf("\n--- total: %d, get %d-th ---\n", total, (i + rows * j));
+				ptr = ft_get_nth(head, i + rows * j);
+				ft_printf("%s%*s%s", ptr->color, -col_width, ptr->name, RESET);
 			}
 			j++;
 		}
-
 		r++;
 		write(1, "\n",1);
 		i++;
@@ -99,31 +112,41 @@ void			ft_print_columns(t_flist *head)
 
 void			ft_print_elem(t_opt options, t_flist *head)
 {
+		int			total;
+	total = ft_count_blocks(head);
 	if (options.l)
+	{
+		ft_printf("total %d\n", total);
+		while (head)
+		{
 		ft_printf("%-11s%4hi%10s%5s%7ld %-s%s %s%s%s\n",
 			head->mode, head->nlink, head->user, head->group,
 			head->size, head->date, head->color,
 			head->name, RESET, head->ref);
+		head = head->next;
+	}
+	}
+	else if (options.c1)
+	{
+		while (head)
+		{
+			ft_printf("%s%s%s\n", head->color, head->name, RESET);
+			head = head->next;
+		}
+	}
 	else
 		ft_print_columns(head);
-		//ft_printf("%s%-15s%s\n", head->color, head->name, RESET);
 }
 
 void			ft_print_flist(t_opt options, t_flist *head)
 {
-	int			total;
+
 	t_flist		*phead;
 	struct stat buf;
 
 	phead = head;
-	total = ft_count_blocks(head);
-	if (options.l)
-		ft_printf("total %d\n", total);
-	while (head)
-	{
-		ft_print_elem(options, head);
-		head = head->next;
-	}
+	
+	ft_print_elem(options, head);
 	if (options.rr)
 	{
 		while (phead)
@@ -453,6 +476,8 @@ int			ft_set_option(char symb, t_opt *options)
 			options->r = 1;
 		if (symb == 't')
 			options->t = 1;
+		if (symb == '1')
+			options->c1 = 1;
 		return (1);
 	}
 	return (0);

@@ -46,6 +46,7 @@ typedef	struct		s_opt
 	int				rr;
 	int				r;
 	int				t;
+	int				c1;
 }					t_opt;
 
 typedef struct		s_flist
