@@ -1,7 +1,9 @@
-NAME = ft_ls
-OBJ = $(SRC:.c=.o)
-SRC = ft_ls.c ft_printf.c ft_ls_sort.c
-LIB = libft/libft.a
+NAME	=	ft_ls
+OBJ		=	$(SRC:.c=.o)
+SRC		=	ft_ls_help_functions.c ft_printf.c ft_ls_sort.c ft_ls_main.c \
+			ft_ls_print_list.c ft_ls_list_manage.c ft_ls_read.c \
+			ft_ls_get_info.c
+LIB		=	libft/libft.a
 
 all: $(NAME)
 

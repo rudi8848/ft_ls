@@ -6,7 +6,7 @@
 /*   By: gvynogra <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/20 15:26:29 by gvynogra          #+#    #+#             */
-/*   Updated: 2018/03/20 15:26:41 by gvynogra         ###   ########.fr       */
+/*   Updated: 2018/03/25 13:21:06 by gvynogra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <dirent.h>
 # include <unistd.h>
 # include <sys/types.h>
+# include <sys/xattr.h>
 # include <fcntl.h>
 # include <sys/ioctl.h>
 # include <pwd.h>
@@ -53,7 +54,7 @@ typedef struct		s_flist
 {
 	char			*name;
 	char			*path;
-	char			mode[11];
+	char			mode[12];
 	short			nlink;
 	char			*user;
 	char			*group;
@@ -76,15 +77,24 @@ typedef enum
 }	t_sort_order;
 
 int					ft_read_args(char *name, t_opt options, t_flist **head);
+char				*cut_name(char *str);
+void				ft_set_color(struct stat buf, t_flist **head);
+void				ft_check_xattr(t_flist *file);
 void				ft_get_time(struct stat buf, t_flist **head);
+void				ft_get_size(struct stat buf, t_flist **file);
+void				ft_push_fname(t_flist **head, char *path);
+void				ft_get_mode(struct stat buf, t_flist **file);
 void				ft_get_user_group(struct stat buf, t_flist **head);
 int					ft_flist_counter(t_flist *head);
 void				ft_read_dir(char *path, t_opt options, t_flist **head);
+void				ft_print_flist(t_opt options, t_flist *head);
 void				print_recursion(char *path, t_opt options);
 void				ft_clean_flist(t_opt options, t_flist **file);
 t_flist				*ft_sort_flist(t_opt options, t_flist *head);
-t_flist				*ft_sort_by_name(t_flist *a, t_flist *head, t_pf_compare cmp);
-t_flist				*ft_sort_by_mtime(t_flist *a, t_flist *head, t_pf_compare cmp);
+t_flist				*ft_sort_by_name(t_flist *a, t_flist *h, t_pf_compare cmp);
+t_flist				*ft_sort_by_mtime(t_flist *a, t_flist *h, t_pf_compare cmp);
+t_flist				*ft_get_nth(t_flist *head, int n);
+size_t				ft_maxlen(t_flist *head);
 void				ft_delete_flist(t_opt options, t_flist **head);
 long				ft_count_blocks(t_flist *head);
 int					ft_cmp_ascending(int a, int b);
