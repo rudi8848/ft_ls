@@ -68,7 +68,7 @@ int		ft_parse_width(char *fp, va_list *args, t_options *options)
 	}
 	return (i);
 }
-
+/*
 int		ft_parse_precision(char *fp, va_list *args, t_options *options)
 {
 	int i;
@@ -125,7 +125,7 @@ int		ft_parse_length(char *fp, t_options *options)
 	}
 	return (i);
 }
-
+*/
 ssize_t	ft_parse_options(const char **format, va_list *args, int *res)
 {
 	t_options	*options;
@@ -138,8 +138,8 @@ ssize_t	ft_parse_options(const char **format, va_list *args, int *res)
 		exit(EXIT_FAILURE);
 	fmtp += ft_parse_flags(fmtp, options);
 	fmtp += ft_parse_width(fmtp, args, options);
-	fmtp += ft_parse_precision(fmtp, args, options);
-	fmtp += ft_parse_length(fmtp, options);
+	//fmtp += ft_parse_precision(fmtp, args, options);
+	//fmtp += ft_parse_length(fmtp, options);
 	if (check_type(*fmtp, options))
 	{
 		ft_transformer = ft_choose_type(*fmtp);

@@ -11,46 +11,30 @@ ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int
 	int len;
 	int ret = 0;
 
-	len = 0;
 	if (!fmt)		//<-------- to do
 		exit(ERROR);
 	char *str = (char*)va_arg(*args, const char*);
-	char *tmp = NULL;
 	if (str)
 	{
 		len = ft_strlen(str);
-		if (options->is_set_precision && options->precision < len)
-		{
-			tmp = (char*)ft_memalloc((options->precision + 1)*sizeof(char));
-			tmp = ft_strncpy(tmp, str, options->precision);
-			len = options->precision;
-		}
 		if (len < options->width && !options->left_align)
 		{
 			if (options->fill_by_zero)
 				ret += fillnchar(len, options->width, '0');
 			else
 				ret += fillnchar(len, options->width, ' ');
-			tmp ? ft_putstr(tmp) : ft_putstr(str);
-			ret += len;
+			ft_putstr(str);
 		}
 		else if (len < options->width && options->left_align)
 		{
-			tmp ? ft_putstr(tmp) : ft_putstr(str);
-			ret += len;
+			ft_putstr(str);
 			ret += fillnchar(ret, options->width, ' ');
 		}
 		else
-		{
-			tmp ? ft_putstr(tmp) : ft_putstr(str);
-			ret += len;
-		}
+			ft_putstr(str);
+		ret += len;
 		*res += ret;
-		if (tmp)
-			free(tmp);
 	}
-	else
-		(options->width && options->is_set_precision) ? (*res += fillnchar(0, options->width, '0')) : (*res += ft_print_null_string());
 	return (len);
 }
 
@@ -241,7 +225,7 @@ void	print_udec(uintmax_t n)
 int		fillnchar(int len, int width, char c)
 {
 	int i = 0;
-	char str[256];	//a little faster than output in loop
+	char str[256];
 
 	while (len < width)
 	{
@@ -266,7 +250,7 @@ ssize_t	ft_miniprintf_putnbr_oct(char **fmt, va_list *args, t_options *options, 
 		*res += ret;
 		return (ret);
 	}
-	len = ft_unbr_length(&nbr, 8/*, options*/);
+	len = ft_unbr_length(&nbr, 8);
 
 	if (nbr != 0  && options->show_prefix)
 	{
@@ -332,7 +316,7 @@ ssize_t	ft_miniprintf_putnbr_hex(char **fmt, va_list *args, t_options *options, 
 		*res += ret;
 		return (ret);
 	}
-	len = ft_unbr_length(&nbr, 16/*, options*/);
+	len = ft_unbr_length(&nbr, 16);
 	if (options->width > len && !options->left_align)
 	{
 		if (options->fill_by_zero && !options->precision)
@@ -397,7 +381,7 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 	if (!fmt)
 		exit(ERROR);
 	nbr = ft_cut_signed(args, options);
-	len = ft_snbr_length(&nbr, 10/*, options*/);
+	len = ft_snbr_length(&nbr, 10);
 
 	if (!nbr && options->is_set_precision &&!options->precision)
 	{
@@ -432,12 +416,6 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 		}
 		else
 		{
-			/*if (options->space_before)
-				{
-					ft_putchar(' ');
-					options->space_before = 0;
-					ret++;
-				}*/
 			if (options->precision < len) 
 				ret += fillnchar(len, options->width, ' ');
 			else if (options->precision > len && nbr >= 0)
