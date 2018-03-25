@@ -91,7 +91,7 @@ int			ft_read_args(char *name, t_opt options, t_flist **head)
 	}
 	else
 	{
-		ft_printf("./ft_ls: %s: ", name);
+		ft_miniprintf("./ft_ls: %s: ", name);
 		perror("cannot access");
 	}
 	return (0);

@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_PRINTF_H
-# define FT_PRINTF_H
+#ifndef FT_MINIPRINTF_H
+# define FT_MINIPRINTF_H
 # include "libft/includes/libft.h"
 # include <stdarg.h>
 # include <stdio.h>
@@ -69,6 +69,33 @@ typedef enum
 	CONVERSIONS = 127
 }	t_conv;
 
-int				ft_printf(const char *format, ...);
+int				ft_miniprintf(const char *format, ...);
+
+ssize_t	ft_parse_options(const char **format, va_list *args, int *res);
+int		ft_parse_length(char *fp, t_options *options);
+int		ft_parse_precision(char *fp, va_list *args, t_options *options);
+int		ft_parse_width(char *fp, va_list *args, t_options *options);
+int		ft_parse_flags(char *fp, t_options *options);
+int check_type(char c, t_options *options);
+t_pf	ft_choose_type(t_conv conv);
+void	ft_set_array(t_pf *convert_functions);
+ssize_t		ft_miniprintf_putchar(char **fmt, va_list *args, t_options *options, int *res);
+int	fillnchar(int len, int width, char c);
+ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int *res);
+ssize_t		ft_miniprintf_putchar(char **fmt, va_list *args, t_options *options, int *res);
+uintmax_t	ft_cut_unsigned(va_list *args, t_options *options);
+intmax_t	ft_cut_signed(va_list *args, t_options *options);
+int		ft_unbr_length(uintmax_t *n,int  base);
+int		ft_snbr_length(intmax_t *n,int  base);
+void	print_oct(uintmax_t n);
+void	print_hex(uintmax_t n, char a);
+void	print_sdec(intmax_t n);
+void	print_udec(uintmax_t n);
+ssize_t	ft_miniprintf_putnbr_oct(char **fmt, va_list *args, t_options *options, int *res);
+ssize_t	ft_miniprintf_putnbr_hex(char **fmt, va_list *args, t_options *options, int *res);
+ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options, int *res);
+ssize_t	ft_miniprintf_putnbr_udec(char **fmt, va_list *args, t_options *options, int *res);
+
+
 
 #endif

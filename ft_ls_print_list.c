@@ -38,52 +38,31 @@ void			ft_get_nbr_columns(t_flist *head, int *cols, int *col_width)
 	*cols = width / *col_width;
 }
 
-void			ft_output(t_flist *head, int total, int *cols, int *col_width)
-{
-;
-}
-
-int				ft_get_rows(int total, int cols)
-{
-	int			rows;
-
-	rows = total / cols;
-	if (!rows)
-		rows = 1;
-	if (total % cols)
-		rows++;
-	return (rows);
-}
-
-void			ft_print_columns(t_flist *head, int total)
+void			ft_print_columns(t_flist *head, int total, int c, int r)
 {
 	int			cols;
 	int			col_width;
 	int			rows;
 	t_flist		*ptr;
-	int			i;
 	int			j;
-	int			r;
 
-	i = 0;
-	r = 0;
 	ft_get_nbr_columns(head, &cols, &col_width);
 	rows = ft_get_rows(total, cols);
-	while (i < total && r < rows)
+	while (c < total && r < rows)
 	{
 		j = 0;
 		while (j < cols)
 		{
-			if (i + rows * j < total)
+			if (c + rows * j < total)
 			{
-				ptr = ft_get_nth(head, i + rows * j);
-				ft_printf("%s%*s%s", ptr->color, -col_width, ptr->name, RESET);
+				ptr = ft_get_nth(head, c + rows * j);
+				ft_miniprintf("%s%*s%s", ptr->color, -col_width, ptr->name, RESET);
 			}
 			j++;
 		}
 		write(1, "\n", 1);
 		r++;
-		i++;
+		c++;
 	}
 }
 
@@ -94,10 +73,10 @@ void			ft_print_elem(t_opt options, t_flist *head)
 	total = ft_count_blocks(head);
 	if (options.l)
 	{
-		ft_printf("total %d\n", total);
+		ft_miniprintf("total %d\n", total);
 		while (head)
 		{
-			ft_printf("%-11s%4hi%10s%5s%7ld %-s%s %s%s%s\n",
+			ft_miniprintf("%-11s%4hi%10s%5s%7ld %-s%s %s%s%s\n",
 			head->mode, head->nlink, head->user, head->group,
 			head->size, head->date, head->color,
 			head->name, RESET, head->ref);
@@ -108,12 +87,12 @@ void			ft_print_elem(t_opt options, t_flist *head)
 	{
 		while (head)
 		{
-			ft_printf("%s%s%s\n", head->color, head->name, RESET);
+			ft_miniprintf("%s%s%s\n", head->color, head->name, RESET);
 			head = head->next;
 		}
 	}
 	else
-		ft_print_columns(head, ft_flist_counter(head));
+		ft_print_columns(head, ft_flist_counter(head), 0, 0);
 }
 
 void			ft_print_flist(t_opt options, t_flist *head)
@@ -142,7 +121,7 @@ void			print_recursion(char *path, t_opt options)
 	t_flist		*new_head;
 	t_flist		*ptr;
 
-	ft_printf("\n%s:\n", path);
+	ft_miniprintf("\n%s:\n", path);
 	new_head = (t_flist*)ft_memalloc(sizeof(t_flist));
 	if (!new_head)
 	{

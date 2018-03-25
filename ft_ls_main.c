@@ -50,8 +50,8 @@ t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 			{
 				if (!ft_set_option(*ptr, options))
 				{
-					ft_printf("./ft_ls: illegal option '%c'\n", *ptr);
-					ft_printf("usage: ./ft_ls [-larRt] [file ...]\n");
+					ft_miniprintf("./ft_ls: illegal option '%c'\n", *ptr);
+					ft_miniprintf("usage: ./ft_ls [-larRt] [file ...]\n");
 					exit(EXIT_FAILURE);
 				}
 				ptr++;

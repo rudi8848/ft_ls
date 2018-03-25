@@ -27,6 +27,18 @@ size_t			ft_maxlen(t_flist *head)
 	return (max);
 }
 
+int				ft_get_rows(int total, int cols)
+{
+	int			rows;
+
+	rows = total / cols;
+	if (!rows)
+		rows = 1;
+	if (total % cols)
+		rows++;
+	return (rows);
+}
+
 char			*cut_name(char *str)
 {
 	int			len;

@@ -26,7 +26,7 @@
 # include <sys/stat.h>
 # include <time.h>
 # include "libft/includes/libft.h"
-# include "ft_printf.h"
+# include "ft_miniprintf.h"
 # include <errno.h>
 
 # define RESET		"\033[0m"
@@ -86,6 +86,7 @@ void				ft_push_fname(t_flist **head, char *path);
 void				ft_get_mode(struct stat buf, t_flist **file);
 void				ft_get_user_group(struct stat buf, t_flist **head);
 int					ft_flist_counter(t_flist *head);
+int					ft_get_rows(int total, int cols);
 void				ft_read_dir(char *path, t_opt options, t_flist **head);
 void				ft_print_flist(t_opt options, t_flist *head);
 void				print_recursion(char *path, t_opt options);

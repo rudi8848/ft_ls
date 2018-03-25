@@ -1,7 +1,4 @@
-#include "ft_printf.h"
-
-int	fillnchar(int len, int width, char c);
-static int check_type(char c, t_options *options);
+#include "ft_miniprintf.h"
   
 int		ft_print_null_string(void)
 {
@@ -9,7 +6,7 @@ int		ft_print_null_string(void)
 	return (6);
 }
 
-ssize_t		ft_printf_putstr(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int *res)
 {
 	int len;
 	int ret = 0;
@@ -58,7 +55,7 @@ ssize_t		ft_printf_putstr(char **fmt, va_list *args, t_options *options, int *re
 }
 
 
-ssize_t		ft_printf_putchar(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t		ft_miniprintf_putchar(char **fmt, va_list *args, t_options *options, int *res)
 {
 	int symb;
 	char *ptr;
@@ -139,7 +136,7 @@ intmax_t	ft_cut_signed(va_list *args, t_options *options)
 	return (nbr);
 }
 
-int		ft_unbr_length(uintmax_t *n,int  base/*, t_options *options*/)
+int		ft_unbr_length(uintmax_t *n,int  base)
 {
 	int len;
 	uintmax_t nbr;
@@ -159,7 +156,8 @@ int		ft_unbr_length(uintmax_t *n,int  base/*, t_options *options*/)
 	}
 	return (len);
 }
-int		ft_snbr_length(intmax_t *n,int  base/*, t_options *options*/)
+
+int		ft_snbr_length(intmax_t *n,int  base)
 {
 	int len;
 	intmax_t nbr;
@@ -254,7 +252,7 @@ int		fillnchar(int len, int width, char c)
 	return (write(1, str, i));
 }
 
-ssize_t	ft_printf_putnbr_oct(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t	ft_miniprintf_putnbr_oct(char **fmt, va_list *args, t_options *options, int *res)
 {
 	uintmax_t	nbr;
 	int		len;
@@ -309,7 +307,7 @@ ssize_t	ft_printf_putnbr_oct(char **fmt, va_list *args, t_options *options, int 
 	return (ret);
 }
 
-ssize_t	ft_printf_putnbr_hex(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t	ft_miniprintf_putnbr_hex(char **fmt, va_list *args, t_options *options, int *res)
 {
 	uintmax_t	nbr;
 	int		len;
@@ -390,7 +388,7 @@ ssize_t	ft_printf_putnbr_hex(char **fmt, va_list *args, t_options *options, int 
 	return (ret);
 }
 
-ssize_t	ft_printf_putnbr_sdec(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options, int *res)
 {
 	intmax_t	nbr;
 	int		len;
@@ -523,7 +521,7 @@ ssize_t	ft_printf_putnbr_sdec(char **fmt, va_list *args, t_options *options, int
 }
 
 
-ssize_t	ft_printf_putnbr_udec(char **fmt, va_list *args, t_options *options, int *res)
+ssize_t	ft_miniprintf_putnbr_udec(char **fmt, va_list *args, t_options *options, int *res)
 {
 	uintmax_t	nbr;
 	int		len;
@@ -586,302 +584,7 @@ ssize_t	ft_printf_putnbr_udec(char **fmt, va_list *args, t_options *options, int
 	return (ret);
 }
 
-
-
-/*
-**----------------------------------------------------------------------------------------------------------
-*/
-
-
-/*
-int ft_max(int a, int b, int c)
-{
-	if (a >= b && a >=c)
-		return a;
-	else if (b >= a && b >= c)
-		return b;
-	else
-		return c;
-}
-char	*print_udec1(char *ptr, uintmax_t n, int len)
-{	
-	while (len)
-	{
-		*(ptr + len) = n % 10 + '0';
-		n /= 10;
-		len--;
-	}
-	return (ptr);
-
-}
-ssize_t	ft_printf_putnbr_udec(char **fmt, va_list *args, t_options *options, int *res)
-{
-	uintmax_t	nbr;
-	int		len;
-	int ret = 0;
-	char *str;
-	int slen;
-	char * ptr;
-
-	if (!fmt)
-		exit(ERROR);
-	nbr = ft_cut_unsigned(args, options);
-	len = ft_unbr_length(&nbr, 10);
-
-	//slen = ft_max(len, options->precision, options->width)
-	slen = len + options->space_before + options->show_sign;
-	str = ft_strnew(slen);
-	if (str)
-	{
-		
-		*str = options->show_sign ? '+' : ' ';
-		ptr = str + 1;
-		ptr = print_udec1(ptr, nbr, len);
-		
-		ft_printf_putstr(fmt, NULL, options, res);
-		
-		free(str);
-	}
-	*res += slen;
-	return slen;
-}
-*/
-
-
-
-int		ft_parse_flags(char *fp, t_options *options)
-{
-	int i;
-
-	i = 0;
-	
-	while (fp[i] == '-' || fp[i] == '+' || fp[i] == ' ' || fp[i] == '#' || fp[i] == '0' )
-	{
-		if (fp[i] && fp[i + 1])
-		{
-			if(fp[i] == '+')
-				options->show_sign = 1;
-			else if (fp[i] == ' ')
-				options->space_before = 1;
-			else if (fp[i] == '#')
-				options->show_prefix = 1;
-			else if (fp[i] == '0')
-				options->fill_by_zero = 1;
-			else if (fp[i] == '-')
-			{
-				options->left_align = 1;
-				options->fill_by_zero = 0;
-			}
-		}
-		else
-			exit(0);
-		i++;
-	}
-	if (options->show_sign && options->space_before)
-		options->space_before = 0;
-	return (i);
-}
-
-int		ft_parse_width(char *fp, va_list *args, t_options *options)
-{
-	int i;
-	int arg;
-
-	i = 0;
-	if (fp[i] && fp[i + 1])
-	{
-		while (ft_isdigit(fp[i]) || fp[i] == '*')
-		{
-			if (ft_isdigit(fp[i]))
-			{
-				options->width = ft_atoi(fp + i);
-				while (ft_isdigit(fp[i]))
-					i++;
-			}
-			if (fp[i] == '*')
-			{
-				arg = va_arg(*args, int);
-				if (arg < 0)
-				{
-					arg = -arg;
-					options->left_align = 1;
-				}
-				options->width = arg;
-				i++;
-			}
-		}
-	}
-	return (i);
-}
-
-int		ft_parse_precision(char *fp, va_list *args, t_options *options)
-{
-	int i;
-	int arg;
-
-	i = 0;
-	if (fp[i] && fp[i] == '.')
-	{
-		i++;
-		options->is_set_precision = 1;
-		if (ft_isdigit(fp[i]))
-		{
-			options->precision = ft_atoi(fp + i);
-			while (ft_isdigit(fp[i]))
-				i++;
-		}
-		if (fp[i] == '*')
-		{
-			arg = va_arg(*args, int);
-			if (arg >= 0)
-				options->precision = arg;
-			else
-				options->is_set_precision = 0;
-			i++;
-		}
-	}
-	return (i);
-}
-
-int		ft_parse_length(char *fp, t_options *options)
-{
-	int i;
-
-	i = 0;
-	if (fp[i] && fp[i + 1])
-	{
-		while (fp[i] == 'h' || fp[i] == 'l' || fp[i] == 'j' || fp[i] == 'z')
-		{
-			if (fp[i] == 'h')
-			{
-				i++;
-				if (fp[i] == 'h')
-				{
-					options->len_hh = 1;
-					i++;
-				}
-				options->len_h = 1;
-			}
-			if (fp[i] == 'l')
-			{
-				i++;
-				if (fp[i] == 'l')
-				{
-					options->len_ll = 1;
-					i++;
-				}
-				options->len_l = 1;
-			}
-			if (fp[i] == 'j')
-			{
-				options->len_j = 1;
-				i++;
-			}
-			if (fp[i] == 'z')
-			{
-				options->len_z = 1;
-				i++;
-			}
-		}
-	}
-	return (i);
-}
-
-void	ft_set_array(t_pf *convert_functions)
-{
-	convert_functions[CONV_c] = &ft_printf_putchar;
-	convert_functions[CONV_s] = &ft_printf_putstr;
-	//if (conv == CONV_d && options->len_z)
-	//	convert_functions[CONV_d] = &ft_printf_putnbr_udec;
-	//else
-		convert_functions[CONV_d] = &ft_printf_putnbr_sdec;
-	convert_functions[CONV_D] = &ft_printf_putnbr_sdec;
-	//if (conv == CONV_d && options->len_z)
-		//convert_functions[CONV_i] = &ft_printf_putnbr_udec;
-	//else
-		convert_functions[CONV_i] = &ft_printf_putnbr_sdec;
-	convert_functions[CONV_u] = &ft_printf_putnbr_udec;
-	convert_functions[CONV_U] = &ft_printf_putnbr_udec;
-	convert_functions[CONV_o] = &ft_printf_putnbr_oct;
-	convert_functions[CONV_O] = &ft_printf_putnbr_oct;
-	convert_functions[CONV_x] = &ft_printf_putnbr_hex;
-	convert_functions[CONV_X] = &ft_printf_putnbr_hex;
-	convert_functions[CONV_p] = &ft_printf_putnbr_hex;
-	//convert_functions[CONV_b] = &ft_printf_putnbr_bin;
-	//convert_functions[CONV_f] = &ft_prinft_putnbr_float;
-	//convert_functions[CONV_F] = &ft_prinft_putnbr_float;
-	//convert_functions[CONV_C] = &ft_printf_putchar;
-	//convert_functions[CONV_S] = &print_wstr;
-}
-
-t_pf	ft_choose_type(t_conv conv/*, t_options *options*/)
-{
-	static t_pf *convert_functions;
-
-	if (!convert_functions)
-	{
-		convert_functions = (t_pf*)ft_memalloc(sizeof(t_pf) * CONVERSIONS);
-		if (!convert_functions)
-			exit(-1);
-		ft_set_array(convert_functions);
-	}
-	
-	return (convert_functions[conv]);
-}
-
-static int check_type(char c, t_options *options)
-{
-	if (c == 's' || c == 'S' || c == 'c' || c == 'C')
-		return (1);
-	else if ( c == 'd' || c == 'i')
-		return (1);
-	else if (c == 'o'|| c == 'u' || c == 'x' || c == 'X')
-		return (1);
-	else if (c == 'D' || c == 'U'  || c == 'O' || c == 'p')
-	{
-		options->len_l = 1;
-		return (1);
-	}
-	else
-		return (0);
-}
-
-
-ssize_t	ft_parse_options(const char **format, va_list *args, int *res)
-{
-	t_options *options;
-	char *fmtp;
-	t_pf ft_transformer;
-
-	fmtp = (char*)++(*format);
-	options = (t_options*)ft_memalloc(sizeof(t_options));
-	if (!options)
-		exit(ERROR);
-	if (*fmtp)
-	{
-		fmtp += ft_parse_flags(fmtp, options);
-		fmtp += ft_parse_width(fmtp, args, options);
-		fmtp += ft_parse_precision(fmtp, args, options);
-		fmtp += ft_parse_length(fmtp, options);
-		if (*fmtp != '\0')
-		{
-			if (check_type(*fmtp, options))
-			{
-				ft_transformer = ft_choose_type(*fmtp/*, options*/);
-				ft_transformer(&fmtp, args, options, res);
-			}
-			else
-				ft_printf_putchar(&fmtp, NULL, options, res);
-		}
-		if (options)
-			free(options);
-		return (fmtp - *format);
-	}
-	return 0;
-}
-
-
-int		ft_printf(const char *format, ...)
+int		ft_miniprintf(const char *format, ...)
 {
 	va_list		args;
 	int			res = 0;
