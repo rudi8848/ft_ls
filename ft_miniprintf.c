@@ -8,7 +8,7 @@ int		ft_print_null_string(void)
 
 ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int *res)
 {
-	int len;
+	int len = 0;
 	int ret = 0;
 
 	if (!fmt)		//<-------- to do
@@ -19,22 +19,24 @@ ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int
 		len = ft_strlen(str);
 		if (len < options->width && !options->left_align)
 		{
-			if (options->fill_by_zero)
-				ret += fillnchar(len, options->width, '0');
-			else
-				ret += fillnchar(len, options->width, ' ');
+			ret += fillnchar(len, options->width, ' ');
 			ft_putstr(str);
+			ret += len;
 		}
 		else if (len < options->width && options->left_align)
 		{
 			ft_putstr(str);
+			ret += len;
 			ret += fillnchar(ret, options->width, ' ');
 		}
 		else
+		{
 			ft_putstr(str);
-		ret += len;
+			ret += len;
+		}
 		*res += ret;
 	}
+	//ft_print_null_string();
 	return (len);
 }
 
@@ -98,6 +100,7 @@ intmax_t	ft_cut_signed(va_list *args, t_options *options)
 	intmax_t nbr;
 
 	nbr = va_arg(*args, intmax_t);
+	/*
 	if (options->len_l || options->len_ll)
 	{
 		options->len_h = 0;
@@ -107,8 +110,8 @@ intmax_t	ft_cut_signed(va_list *args, t_options *options)
 		nbr = (char)nbr;
 	else if (options->len_h && !options->len_l)
 		nbr = (short)nbr;
-	else if (options->len_l)
-		nbr = (long)nbr;
+	else if (options->len_l)*/
+		nbr = (long)nbr;/*
 	else if (options->len_ll)
 		nbr = (long long)nbr;
 	else if (options->len_j)
@@ -116,7 +119,7 @@ intmax_t	ft_cut_signed(va_list *args, t_options *options)
 	else if (options->len_z)
 		nbr = (ssize_t)nbr;
 	else
-		nbr = (int)nbr;
+		nbr = (int)nbr;*/
 	return (nbr);
 }
 /*
