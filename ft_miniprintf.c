@@ -1,71 +1,4 @@
 #include "ft_miniprintf.h"
-  
-int		ft_print_null_string(void)
-{
-	write(1, "(null)", 6);
-	return (6);
-}
-
-ssize_t		ft_miniprintf_putstr(char **fmt, va_list *args, t_options *options, int *res)
-{
-	int len = 0;
-	int ret = 0;
-
-	if (!fmt)		//<-------- to do
-		exit(ERROR);
-	char *str = (char*)va_arg(*args, const char*);
-	if (str)
-	{
-		len = ft_strlen(str);
-		if (len < options->width && !options->left_align)
-		{
-			ret += fillnchar(len, options->width, ' ');
-			ft_putstr(str);
-			ret += len;
-		}
-		else if (len < options->width && options->left_align)
-		{
-			ft_putstr(str);
-			ret += len;
-			ret += fillnchar(ret, options->width, ' ');
-		}
-		else
-		{
-			ft_putstr(str);
-			ret += len;
-		}
-		*res += ret;
-	}
-	return (len);
-}
-
-
-ssize_t		ft_miniprintf_putchar(char **fmt, va_list *args, t_options *options, int *res)
-{
-	int symb;
-	char *ptr;
-	int ret = 0;
-
-	symb = va_arg(*args, int);
-	if (options->width && !options->left_align)
-	{
-		if (options->fill_by_zero)
-			ret += fillnchar(1, options->width, '0');
-		else
-			ret += fillnchar(1, options->width, ' ');
-		ft_putchar(symb);
-		ret += 1;
-	}
-	else
-	{
-		ft_putchar(symb);
-		ret += 1;
-	}
-	if (options->width && options->left_align)
-		ret += fillnchar(1, options->width, ' ');
-	*res += ret;
-	return (ret);
-}
 
 intmax_t	ft_cut_signed(va_list *args, t_options *options)
 {
@@ -135,20 +68,18 @@ int		fillnchar(int len, int width, char c)
 	return (write(1, str, i));
 }
 
-ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options, int *res)
+size_t	ft_miniprintf_putnbr_sdec(va_list *args, t_options *options, int *res)
 {
 	intmax_t	nbr;
 	int		len;
 	int ret = 0;
 
-	if (!fmt)
-		exit(ERROR);
 	nbr = ft_cut_signed(args, options);
 	len = ft_snbr_length(&nbr, 10);
 
 	if (options->width > len && !options->left_align)
 	{
-		if (options->fill_by_zero && !options->precision)
+		if (options->fill_by_zero)
 		{
 			if (nbr < 0)
 			{
@@ -156,35 +87,33 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 				ret += fillnchar(len, options->width, '0');
 				nbr = -nbr;
 			}
-			else
+			else if (options->space_before)
 			{
-				if (options->space_before)
-				{
-					ft_putchar(' ');
-					ret++;
-				}
-				else if (options->show_sign && nbr >= 0)
-				{
-					ft_putchar('+');
-					ret++;
-				}
-				ret += fillnchar(len + ret, options->width, '0');
+				ft_putchar(' ');
+				ret++;
 			}
+			else if (options->show_sign && nbr >= 0)
+			{
+				ft_putchar('+');
+				ret++;
+			}
+					//ret += fillnchar(len + ret, options->width, '0');
 		}
+		//}
 		else
 		{
-			if (options->precision < len) 
-				ret += fillnchar(len, options->width, ' ');
-			else if (options->precision > len && nbr >= 0)
+			/*if (options->precision < len) */
+				ret += fillnchar(len + ret, options->width, ' ');
+			/*else if (options->precision > len && nbr >= 0)
 				ret += fillnchar(options->precision + options->show_sign, options->width, ' ');
 			else if (options->precision > len && nbr < 0)
-				ret += fillnchar(options->precision + 1, options->width, ' ');
+				ret += fillnchar(options->precision + 1, options->width, ' ');*/
 			if (options->show_sign && !options->fill_by_zero && nbr >= 0)
 			{
 				ft_putchar('+');
 				ret++;
 			}	
-			if (options->precision >= len)
+			/*if (options->precision >= len)
 			{
 				if (nbr < 0)
 				{
@@ -194,10 +123,12 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 					len--;
 				}
 				ret += fillnchar(len, options->precision, '0');
-			}
+			}*/
 		}
 			print_sdec(nbr);
 			ret += len;
+			//ret += fillnchar(ret, options->width, ' ');
+			
 	}
 
 	else if (options->width > len && options->left_align)
@@ -212,7 +143,7 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 			ft_putchar('+');
 			ret++;
 		}
-		if (options->precision > len)
+		/*if (options->precision > len)
 		{
 			if (nbr < 0)
 			{
@@ -220,11 +151,13 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 				nbr = -nbr;
 			}
 			ret += fillnchar(len, options->precision, '0');
-		}
+		}*/
 		print_sdec(nbr);
 		ret += len;
 		ret += fillnchar(ret, options->width, ' ');
 	}
+
+
 	else
 	{
 		if(options->space_before && nbr > 0)
@@ -237,7 +170,7 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 			ft_putchar('+');
 			ret++;
 		}
-		if (options->precision > len)
+		/*if (options->precision > len)
 		{
 			if (nbr < 0)
 			{
@@ -247,7 +180,7 @@ ssize_t	ft_miniprintf_putnbr_sdec(char **fmt, va_list *args, t_options *options,
 				ret++;
 			}
 			ret += fillnchar(len, options->precision, '0');
-		}
+		}*/
 		print_sdec(nbr);
 		ret += len;
 	}

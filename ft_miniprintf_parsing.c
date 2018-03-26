@@ -68,65 +68,8 @@ int		ft_parse_width(char *fp, va_list *args, t_options *options)
 	}
 	return (i);
 }
-/*
-int		ft_parse_precision(char *fp, va_list *args, t_options *options)
-{
-	int i;
-	int arg;
 
-	i = 0;
-	if (fp[i] && fp[i] == '.')
-	{
-		i++;
-		options->is_set_precision = 1;
-		if (ft_isdigit(fp[i]))
-		{
-			options->precision = ft_atoi(fp + i);
-			while (ft_isdigit(fp[i]))
-				i++;
-		}
-		if (fp[i] == '*')
-		{
-			arg = va_arg(*args, int);
-			if (arg >= 0)
-				options->precision = arg;
-			else
-				options->is_set_precision = 0;
-			i++;
-		}
-	}
-	return (i);
-}
-
-int		ft_parse_length(char *fp, t_options *options)
-{
-	int i;
-
-	i = 0;
-	while (fp[i] == 'h' || fp[i] == 'l' || fp[i] == 'j' || fp[i] == 'z')
-	{
-		if (fp[i] == 'h')
-		{
-			if (fp[i + 1] == 'h')
-				options->len_hh = 1;
-			options->len_h = 1;
-		}
-		if (fp[i] == 'l')
-		{
-			if (fp[i + 1] == 'l')
-				options->len_ll = 1;
-			options->len_l = 1;
-		}
-		if (fp[i] == 'j')
-			options->len_j = 1;
-		if (fp[i] == 'z')
-			options->len_z = 1;
-		i++;
-	}
-	return (i);
-}
-*/
-ssize_t	ft_parse_options(const char **format, va_list *args, int *res)
+size_t	ft_parse_options(const char **format, va_list *args, int *res)
 {
 	t_options	*options;
 	char		*fmtp;
@@ -138,15 +81,13 @@ ssize_t	ft_parse_options(const char **format, va_list *args, int *res)
 		exit(EXIT_FAILURE);
 	fmtp += ft_parse_flags(fmtp, options);
 	fmtp += ft_parse_width(fmtp, args, options);
-	//fmtp += ft_parse_precision(fmtp, args, options);
-	//fmtp += ft_parse_length(fmtp, options);
 	if (check_type(*fmtp, options))
 	{
 		ft_transformer = ft_choose_type(*fmtp);
-		ft_transformer(&fmtp, args, options, res);
+		ft_transformer(args, options, res);
 	}
 	else
-		ft_miniprintf_putchar(&fmtp, NULL, options, res);
+		ft_miniprintf_putchar(NULL, options, res);
 	if (options)
 		free(options);
 	return (fmtp - *format);

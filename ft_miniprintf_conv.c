@@ -36,17 +36,8 @@ t_pf	ft_choose_type(t_conv conv)
 
 int		check_type(char c, t_options *options)
 {
-	if (c == 's' || c == 'S' || c == 'c' || c == 'C')
+	if (c == 's' || c == 'd' || c == 'i' ||c == 'c')
 		return (1);
-	else if (c == 'd' || c == 'i')
-		return (1);
-	else if (c == 'o' || c == 'u' || c == 'x' || c == 'X')
-		return (1);
-	else if (c == 'D' || c == 'U' || c == 'O' || c == 'p')
-	{
-		options->len_l = 1;
-		return (1);
-	}
 	else
 		return (0);
 }
