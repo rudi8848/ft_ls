@@ -36,6 +36,7 @@ void			ft_read_file(char *pth, t_opt opt, struct stat bf, t_flist **hd)
 	(*hd)->mtime = bf.st_mtime;
 	ft_set_color(bf, hd);
 	(*hd)->ref = "";
+	ft_get_size(bf, hd);
 	if (opt.l)
 	{
 		if (S_ISLNK(bf.st_mode))
@@ -43,7 +44,7 @@ void			ft_read_file(char *pth, t_opt opt, struct stat bf, t_flist **hd)
 		ft_get_mode(bf, hd);
 		ft_get_user_group(bf, hd);
 		ft_get_time(bf, hd);
-		ft_get_size(bf, hd);
+
 		(*hd)->nlink = bf.st_nlink;
 	}
 }
