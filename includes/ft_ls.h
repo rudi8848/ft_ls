@@ -95,7 +95,7 @@ void				ft_clean_flist(t_opt options, t_flist **file);
 t_flist				*ft_sort_flist(t_opt options, t_flist *head);
 t_flist				*ft_sort_by_name(t_flist *a, t_flist *h, t_pf_compare cmp);
 t_flist				*ft_sort_by_mtime(t_flist *a, t_flist *h, t_pf_compare cmp);
-t_flist				*ft_sort_by_size(t_flist *a, t_flist *head, t_pf_compare cmp);
+t_flist				*ft_sort_by_size(t_flist *a, t_flist *h, t_pf_compare cmp);
 t_flist				*ft_get_nth(t_flist *head, int n);
 size_t				ft_maxlen(t_flist *head);
 void				ft_delete_flist(t_opt options, t_flist **head);

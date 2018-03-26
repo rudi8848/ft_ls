@@ -45,35 +45,6 @@ t_flist			*ft_sort_flist(t_opt options, t_flist *head)
 	return (head);
 }
 
-t_flist			*ft_sort_by_size(t_flist *a, t_flist *head, t_pf_compare cmp)
-{
-	t_flist			*b;
-	t_flist			*c;
-
-	while (head != NULL)
-	{
-		if (head->next)
-			b = head;
-		else
-			return (a);
-		head = head->next;
-		if (a == NULL || cmp(b->size, a->size))
-		{
-			b->next = a;
-			a = b;
-		}
-		else
-		{
-			c = a;
-			while (c->next != NULL && !cmp(b->size, c->next->size))
-				c = c->next;
-			b->next = c->next;
-			c->next = b;
-		}
-	}
-	return (a);
-}
-
 t_flist			*ft_sort_by_mtime(t_flist *a, t_flist *head, t_pf_compare cmp)
 {
 	t_flist			*b;

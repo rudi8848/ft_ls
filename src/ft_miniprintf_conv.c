@@ -36,7 +36,7 @@ t_pf	ft_choose_type(t_conv conv)
 
 int		check_type(char c)
 {
-	if (c == 's' || c == 'd' || c == 'i' ||c == 'c')
+	if (c == 's' || c == 'd' || c == 'i' || c == 'c')
 		return (1);
 	else
 		return (0);

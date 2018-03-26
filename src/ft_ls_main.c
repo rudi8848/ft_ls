@@ -131,6 +131,5 @@ int			main(int argc, char **argv)
 	if (!res)
 		return (-1);
 	free(options);
-	//system("leaks ft_ls");
 	return (0);
 }

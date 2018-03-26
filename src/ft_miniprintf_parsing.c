@@ -36,18 +36,15 @@ int		ft_parse_flags(char *fp, t_options *options)
 
 	i = 0;
 	while (fp[i] == '-' || fp[i] == '+' || fp[i] == ' '
-			|| fp[i] == '#' || fp[i] == '0')
+			|| fp[i] == '#')
 	{
 		if (fp[i] == '+')
 			options->show_sign = 1;
 		else if (fp[i] == ' ')
 			options->space_before = 1;
-		else if (fp[i] == '0')
-			options->fill_by_zero = 1;
 		else if (fp[i] == '-')
 		{
 			options->left_align = 1;
-			options->fill_by_zero = 0;
 		}
 		i++;
 	}
@@ -113,9 +110,10 @@ size_t	ft_parse_options(const char **format, va_list *args, int *res)
 int		ft_miniprintf(const char *format, ...)
 {
 	va_list		args;
-	int			res = 0;
+	int			res;
 	char		*ptr;
 
+	res = 0;
 	va_start(args, format);
 	while (*format)
 	{
@@ -123,7 +121,7 @@ int		ft_miniprintf(const char *format, ...)
 		{
 			ptr = (char*)format + 1;
 			if (!*ptr)
-				return res;
+				return (res);
 			format += ft_parse_options(&format, &args, &res);
 		}
 		else

@@ -44,7 +44,6 @@ void			ft_read_file(char *pth, t_opt opt, struct stat bf, t_flist **hd)
 		ft_get_mode(bf, hd);
 		ft_get_user_group(bf, hd);
 		ft_get_time(bf, hd);
-
 		(*hd)->nlink = bf.st_nlink;
 	}
 }
@@ -88,7 +87,7 @@ void			ft_read_dir(char *name, t_opt options, t_flist **head)
 	closedir(dirp);
 }
 
-int			ft_read_args(char *name, t_opt options, t_flist **head)
+int				ft_read_args(char *name, t_opt options, t_flist **head)
 {
 	int				ret;
 	struct stat		buf;

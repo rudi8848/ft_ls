@@ -56,7 +56,8 @@ void			ft_print_columns(t_flist *head, int total, int c, int r)
 			if (c + rows * j < total)
 			{
 				ptr = ft_get_nth(head, c + rows * j);
-				ft_miniprintf("%s%*s%s", ptr->color, -col_width, ptr->name, RESET);
+				ft_miniprintf("%s%*s%s", ptr->color, -col_width,
+					ptr->name, RESET);
 			}
 			j++;
 		}

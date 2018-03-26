@@ -14,12 +14,14 @@ NAME	=	ft_ls
 OBJ		=	ft_ls_help_functions.o ft_ls_sort.o ft_ls_main.o \
 			ft_ls_print_list.o ft_ls_list_manage.o ft_ls_read.o \
 			ft_ls_get_info.o ft_miniprintf_num.o ft_miniprintf_parsing.o\
-			ft_miniprintf_conv.o ft_miniprintf_char.o
+			ft_miniprintf_conv.o ft_miniprintf_char.o ft_ls_bonus_sort.o\
+			ft_miniprintf_num_align.o
 
 SRC		=	src/ft_ls_help_functions.c src/ft_ls_sort.c src/ft_ls_main.c \
 			src/ft_ls_print_list.c src/ft_ls_list_manage.c src/ft_ls_read.c \
 			src/ft_ls_get_info.c src/ft_miniprintf_num.c src/ft_miniprintf_parsing.c\
-			src/ft_miniprintf_conv.c src/ft_miniprintf_char.c
+			src/ft_miniprintf_conv.c src/ft_miniprintf_char.c src/ft_ls_bonus_sort.c\
+			src/ft_miniprintf_num_align.c
 
 LIB		=	libft/libft.a
 INCL	=	includes/ft_ls.h includes/ft_miniprintf.h
