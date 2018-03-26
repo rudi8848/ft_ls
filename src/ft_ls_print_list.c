@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_ls.h"
+#include "../includes/ft_ls.h"
 
 void			ft_get_nbr_columns(t_flist *head, int *cols, int *col_width)
 {
@@ -76,7 +76,7 @@ void			ft_print_elem(t_opt options, t_flist *head)
 		ft_miniprintf("total %d\n", total);
 		while (head)
 		{
-			ft_miniprintf("%-11s%4i%10s%5s%7d %-s%s %s%s%s\n",
+			ft_miniprintf("%-11s%4hi%10s%5s%7ld %-s%s %s%s%s\n",
 			head->mode, head->nlink, head->user, head->group,
 			head->size, head->date, head->color,
 			head->name, RESET, head->ref);

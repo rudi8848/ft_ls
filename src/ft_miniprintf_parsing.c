@@ -10,7 +10,25 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_miniprintf.h"
+#include "../includes/ft_miniprintf.h"
+
+int		ft_parse_length(char *fp, t_options *options)
+{
+	int i;
+
+	i = 0;
+	if (fp[i] == 'h')
+	{
+		i++;
+		options->len_h = 1;
+	}
+	if (fp[i] == 'l')
+	{
+		i++;
+		options->len_l = 1;
+	}
+	return (i);
+}
 
 int		ft_parse_flags(char *fp, t_options *options)
 {
@@ -24,8 +42,6 @@ int		ft_parse_flags(char *fp, t_options *options)
 			options->show_sign = 1;
 		else if (fp[i] == ' ')
 			options->space_before = 1;
-		else if (fp[i] == '#')
-			options->show_prefix = 1;
 		else if (fp[i] == '0')
 			options->fill_by_zero = 1;
 		else if (fp[i] == '-')
@@ -81,7 +97,8 @@ size_t	ft_parse_options(const char **format, va_list *args, int *res)
 		exit(EXIT_FAILURE);
 	fmtp += ft_parse_flags(fmtp, options);
 	fmtp += ft_parse_width(fmtp, args, options);
-	if (check_type(*fmtp, options))
+	fmtp += ft_parse_length(fmtp, options);
+	if (check_type(*fmtp))
 	{
 		ft_transformer = ft_choose_type(*fmtp);
 		ft_transformer(args, options, res);
@@ -91,4 +108,31 @@ size_t	ft_parse_options(const char **format, va_list *args, int *res)
 	if (options)
 		free(options);
 	return (fmtp - *format);
+}
+
+int		ft_miniprintf(const char *format, ...)
+{
+	va_list		args;
+	int			res = 0;
+	char		*ptr;
+
+	va_start(args, format);
+	while (*format)
+	{
+		if (*format == '%')
+		{
+			ptr = (char*)format + 1;
+			if (!*ptr)
+				return res;
+			format += ft_parse_options(&format, &args, &res);
+		}
+		else
+		{
+			ft_putchar(*format);
+			res++;
+		}
+		format++;
+	}
+	va_end(args);
+	return (res);
 }

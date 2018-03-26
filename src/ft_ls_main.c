@@ -10,12 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_ls.h"
+#include "../includes/ft_ls.h"
 
 int			ft_set_option(char symb, t_opt *options)
 {
 	if (symb == 'a' || symb == 'l' || symb == 'R'
-		|| symb == 'r' || symb == 't' || symb == '1')
+		|| symb == 'r' || symb == 't' || symb == '1' || symb == 'S')
 	{
 		if (symb == 'a')
 			options->a = 1;
@@ -29,6 +29,8 @@ int			ft_set_option(char symb, t_opt *options)
 			options->t = 1;
 		if (symb == '1')
 			options->c1 = 1;
+		if (symb == 'S')
+			options->sz = 1;
 		return (1);
 	}
 	return (0);
@@ -51,7 +53,7 @@ t_opt		*ft_read_options(int argc, char **argv, t_opt *options)
 				if (!ft_set_option(*ptr, options))
 				{
 					ft_miniprintf("./ft_ls: illegal option '%c'\n", *ptr);
-					ft_miniprintf("usage: ./ft_ls [-larRt] [file ...]\n");
+					ft_miniprintf("usage: ./ft_ls [-larRt1] [file ...]\n");
 					exit(EXIT_FAILURE);
 				}
 				ptr++;
@@ -129,5 +131,6 @@ int			main(int argc, char **argv)
 	if (!res)
 		return (-1);
 	free(options);
+	//system("leaks ft_ls");
 	return (0);
 }

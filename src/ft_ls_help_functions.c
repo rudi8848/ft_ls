@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_ls.h"
+#include "../includes/ft_ls.h"
 
 size_t			ft_maxlen(t_flist *head)
 {
@@ -34,7 +34,7 @@ int				ft_get_rows(int total, int cols)
 	rows = total / cols;
 	if (!rows)
 		rows = 1;
-	if (total % cols)
+	else if (total % cols)
 		rows++;
 	return (rows);
 }

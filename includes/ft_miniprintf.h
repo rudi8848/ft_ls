@@ -12,11 +12,9 @@
 
 #ifndef FT_MINIPRINTF_H
 # define FT_MINIPRINTF_H
-# include "libft/includes/libft.h"
+# include "../libft/includes/libft.h"
 # include <stdarg.h>
 # include <stdio.h>
-# include <locale.h>
-# include <wchar.h>
 # include <inttypes.h>
 # include <sys/types.h>
 # define ERROR 1
@@ -27,8 +25,9 @@ typedef struct	s_options
 	int			left_align;
 	int			show_sign;
 	int			space_before;
-	int			show_prefix;
 	int			fill_by_zero;
+	int			len_l;
+	int			len_h;
 	int			width;
 }				t_options;
 
@@ -45,20 +44,18 @@ typedef enum
 
 int				ft_miniprintf(const char *format, ...);
 
-size_t	ft_parse_options(const char **format, va_list *args, int *res);
-int		ft_parse_length(char *fp, t_options *options);
-int		ft_parse_precision(char *fp, va_list *args, t_options *options);
-int		ft_parse_width(char *fp, va_list *args, t_options *options);
-int		ft_parse_flags(char *fp, t_options *options);
-int check_type(char c, t_options *options);
-t_pf	ft_choose_type(t_conv conv);
-void	ft_set_array(t_pf *convert_functions);
-int	fillnchar(int len, int width, char c);
-size_t		ft_miniprintf_putstr(/*char **fmt,*/ va_list *args, t_options *options, int *res);
-size_t		ft_miniprintf_putchar(/*char **fmt, */va_list *args, t_options *options, int *res);
+size_t		ft_parse_options(const char **format, va_list *args, int *res);
+int			ft_parse_width(char *fp, va_list *args, t_options *options);
+int			ft_parse_flags(char *fp, t_options *options);
+int 		check_type(char c);
+t_pf		ft_choose_type(t_conv conv);
+void		ft_set_array(t_pf *convert_functions);
+int			fillnchar(int len, int width, char c);
+size_t		ft_miniprintf_putstr(va_list *args, t_options *options, int *res);
+size_t		ft_miniprintf_putchar(va_list *args, t_options *options, int *res);
 intmax_t	ft_cut_signed(va_list *args, t_options *options);
-int		ft_snbr_length(intmax_t *n,int  base);
-void	print_sdec(intmax_t n);
-size_t	ft_miniprintf_putnbr_sdec(/*char **fmt,*/ va_list *args, t_options *options, int *res);
+int			ft_snbr_length(intmax_t *n,int  base);
+void		print_sdec(intmax_t n);
+size_t		ft_miniprintf_putnbr_sdec(va_list *args, t_options *options, int *res);
 
 #endif

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_ls.h"
+#include "../includes/ft_ls.h"
 
 int				ft_cmp_ascending(int a, int b)
 {
@@ -30,15 +30,48 @@ t_flist			*ft_sort_flist(t_opt options, t_flist *head)
 	a = NULL;
 	cmp[SO_ASC] = ft_cmp_ascending;
 	cmp[SO_DESC] = ft_cmp_descending;
-	if (!options.r && !options.t)
+	if (!options.r && !options.t && !options.sz)
 		head = ft_sort_by_name(a, head, cmp[SO_ASC]);
-	else if (options.r && !options.t)
+	else if (options.r && !options.t && !options.sz)
 		head = ft_sort_by_name(a, head, cmp[SO_DESC]);
-	else if (options.t && !options.r)
+	else if (options.t && !options.r && !options.sz)
 		head = ft_sort_by_mtime(a, head, cmp[SO_ASC]);
-	else if (options.t && options.r)
+	else if (options.t && options.r && !options.sz)
 		head = ft_sort_by_mtime(a, head, cmp[SO_DESC]);
+	else if (options.sz && !options.r)
+		head = ft_sort_by_size(a, head, cmp[SO_ASC]);
+	else if (options.sz && options.r)
+		head = ft_sort_by_size(a, head, cmp[SO_DESC]);
 	return (head);
+}
+
+t_flist			*ft_sort_by_size(t_flist *a, t_flist *head, t_pf_compare cmp)
+{
+	t_flist			*b;
+	t_flist			*c;
+
+	while (head != NULL)
+	{
+		if (head->next)
+			b = head;
+		else
+			return (a);
+		head = head->next;
+		if (a == NULL || cmp(b->size, a->size))
+		{
+			b->next = a;
+			a = b;
+		}
+		else
+		{
+			c = a;
+			while (c->next != NULL && !cmp(b->size, c->next->size))
+				c = c->next;
+			b->next = c->next;
+			c->next = b;
+		}
+	}
+	return (a);
 }
 
 t_flist			*ft_sort_by_mtime(t_flist *a, t_flist *head, t_pf_compare cmp)

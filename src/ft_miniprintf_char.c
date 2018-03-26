@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_miniprintf.h"
+#include "../includes/ft_miniprintf.h"
 
 int		ft_print_null_string(void)
 {

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_miniprintf.h"
+#include "../includes/ft_miniprintf.h"
 
 void	ft_set_array(t_pf *convert_functions)
 {
@@ -28,13 +28,13 @@ t_pf	ft_choose_type(t_conv conv)
 	{
 		convert_functions = (t_pf*)ft_memalloc(sizeof(t_pf) * CONVERSIONS);
 		if (!convert_functions)
-			exit(-1);
+			exit(EXIT_FAILURE);
 		ft_set_array(convert_functions);
 	}
 	return (convert_functions[conv]);
 }
 
-int		check_type(char c, t_options *options)
+int		check_type(char c)
 {
 	if (c == 's' || c == 'd' || c == 'i' ||c == 'c')
 		return (1);

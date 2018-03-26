@@ -25,7 +25,7 @@
 # include <stdlib.h>
 # include <sys/stat.h>
 # include <time.h>
-# include "libft/includes/libft.h"
+# include "../libft/includes/libft.h"
 # include "ft_miniprintf.h"
 # include <errno.h>
 
@@ -48,6 +48,7 @@ typedef	struct		s_opt
 	int				r;
 	int				t;
 	int				c1;
+	int				sz;
 }					t_opt;
 
 typedef struct		s_flist
@@ -94,6 +95,7 @@ void				ft_clean_flist(t_opt options, t_flist **file);
 t_flist				*ft_sort_flist(t_opt options, t_flist *head);
 t_flist				*ft_sort_by_name(t_flist *a, t_flist *h, t_pf_compare cmp);
 t_flist				*ft_sort_by_mtime(t_flist *a, t_flist *h, t_pf_compare cmp);
+t_flist				*ft_sort_by_size(t_flist *a, t_flist *head, t_pf_compare cmp);
 t_flist				*ft_get_nth(t_flist *head, int n);
 size_t				ft_maxlen(t_flist *head);
 void				ft_delete_flist(t_opt options, t_flist **head);
