@@ -17,15 +17,7 @@ void	ft_set_array(t_pf *convert_functions)
 	convert_functions[CONV_c] = &ft_miniprintf_putchar;
 	convert_functions[CONV_s] = &ft_miniprintf_putstr;
 	convert_functions[CONV_d] = &ft_miniprintf_putnbr_sdec;
-	//convert_functions[CONV_D] = &ft_miniprintf_putnbr_sdec;
 	convert_functions[CONV_i] = &ft_miniprintf_putnbr_sdec;
-	/*convert_functions[CONV_u] = &ft_miniprintf_putnbr_udec;
-	convert_functions[CONV_U] = &ft_miniprintf_putnbr_udec;
-	convert_functions[CONV_o] = &ft_miniprintf_putnbr_oct;
-	convert_functions[CONV_O] = &ft_miniprintf_putnbr_oct;
-	convert_functions[CONV_x] = &ft_miniprintf_putnbr_hex;
-	convert_functions[CONV_X] = &ft_miniprintf_putnbr_hex;
-	convert_functions[CONV_p] = &ft_miniprintf_putnbr_hex;*/
 }
 
 t_pf	ft_choose_type(t_conv conv)
