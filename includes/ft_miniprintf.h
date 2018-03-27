@@ -43,11 +43,13 @@ typedef enum
 int				ft_miniprintf(const char *format, ...);
 size_t			ft_parse_options(const char **format, va_list *args, int *res);
 int				ft_parse_width(char *fp, va_list *args, t_options *options);
+int				ft_parse_length(char *fp, t_options *options);
 int				ft_parse_flags(char *fp, t_options *options);
 int				check_type(char c);
 t_pf			ft_choose_type(t_conv conv);
 void			ft_set_array(t_pf *convert_functions);
 int				fillnchar(int len, int width, char c);
+int				ft_print_null_string(void);
 size_t			ft_miniprintf_putstr(va_list *args, t_options *opt, int *res);
 size_t			ft_miniprintf_putchar(va_list *args, t_options *opt, int *res);
 intmax_t		ft_cut_signed(va_list *args, t_options *options);
