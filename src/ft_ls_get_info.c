@@ -12,12 +12,6 @@
 
 #include "../includes/ft_ls.h"
 
-void			ft_get_size(struct stat buf, t_flist **file)
-{
-	(*file)->size = buf.st_size;
-	(*file)->blocks = buf.st_blocks;
-}
-
 void			ft_get_time(struct stat buf, t_flist **file)
 {
 	char			*date;

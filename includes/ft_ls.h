@@ -82,7 +82,6 @@ char				*cut_name(char *str);
 void				ft_set_color(struct stat buf, t_flist **head);
 void				ft_check_xattr(t_flist *file);
 void				ft_get_time(struct stat buf, t_flist **head);
-void				ft_get_size(struct stat buf, t_flist **file);
 void				ft_push_fname(t_flist **head, char *path);
 void				ft_get_mode(struct stat buf, t_flist **file);
 void				ft_get_user_group(struct stat buf, t_flist **head);

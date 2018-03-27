@@ -59,7 +59,7 @@ void			ft_check_xattr(t_flist *file)
 	char		list[1024];
 	int			ret;
 
-	ret = listxattr(file->path, list, 1024, 0);
+	ret = listxattr(file->path, list, 1024/*, 0*/);
 	if (ret > 0)
 	{
 		file->mode[10] = '@';
